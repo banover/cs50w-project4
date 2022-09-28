@@ -6,8 +6,9 @@ from django.urls import reverse
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
+import json
 
-from .models import User
+from .models import User, Posts
 
 # @csrf_exempt, @login_required 붙일지 고민해보셈(header에 import하고 쓰셈 - from django.contrib.auth.decorators import login_required and from django.views.decorators.csrf import csrf_exempt)
 
@@ -15,12 +16,13 @@ def index(request):
     if request.method == "GET":
         return render(request, "network/index.html")
 
-    else:
-        pass
+    #else:
+    #    pass
         
 
-@csrf_exempt
+
 @login_required
+@csrf_exempt
 def upload(request):
     if request.method == "POST":
 
@@ -32,7 +34,7 @@ def upload(request):
         # Uploading model using request data
         posts = Posts(
             username = username,
-            comment = post
+            comment = comment
             # datetime and like made auto
         )
         posts.save()
@@ -40,7 +42,13 @@ def upload(request):
         # Return jason response (view.py - compose부분 참고 FROM mail(pj3))
         return JsonResponse({"message": "Posts sent successfully."}, status=201)
 
-        # method = get, read data from db and send it to js in Jsonform
+
+
+def load_post(request):
+    posts = Posts.objects.all()
+    posts = posts.order_by("-datetime").all()
+
+    return JsonResponse([post.serialize() for post in posts], safe=False)
 
 
 def login_view(request):
@@ -63,6 +71,7 @@ def login_view(request):
         return render(request, "network/login.html")
 
 
+@login_required
 def logout_view(request):
     logout(request)
     return HttpResponseRedirect(reverse("index"))

@@ -6,11 +6,11 @@
         <h4>New Post</h3>
         <!--js써서 summit이 onclick되면 fetch해서 등록하고 all post에 upload시키기-->
         <form id="new_post_form">            
-            <textarea placeholder="Comment" rows="4" cols="150"></textarea><br>
+            <textarea id="comment" placeholder="Comment" rows="4" cols="150"></textarea><br>
             <input type="submit" value="Post">
         </form>
+    </div>    
+    <div id="uploaded_posts_view">        
     </div>
-    <div id="uploaded_posts_view">
-
-    </div>
+    <hr>
 {% endblock %}

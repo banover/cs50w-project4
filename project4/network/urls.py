@@ -11,5 +11,7 @@ urlpatterns = [
 
     #API
     path("upload", views.upload, name="upload"),
-    path("load_post", views.load_post, name="load_post")
+    path("load_post", views.load_post, name="load_post"),
+    path("get_follower", views.get_follower, name="get_follow")
+    #path("get_followee", views.get_followee, name="get_follow")
 ]

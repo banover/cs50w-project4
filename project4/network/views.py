@@ -8,7 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 import json
 
-from .models import User, Posts
+from .models import User, Posts, Follow_connection
 
 # @csrf_exempt, @login_required 붙일지 고민해보셈(header에 import하고 쓰셈 - from django.contrib.auth.decorators import login_required and from django.views.decorators.csrf import csrf_exempt)
 
@@ -19,6 +19,28 @@ def index(request):
     #else:
     #    pass
         
+
+@csrf_exempt 
+@login_required
+def get_follower(request):
+    if request.method == 'POST':
+        username = request.user
+        # Getting follower datas from db 
+        follows = Follow_connection.objects.filter(username=username)
+        # return jsonresponse with follower data
+        return JsonResponse([follow.serialize() for follow in follows], safe=False)
+        #return JsonResponse(follows)
+
+
+#@csrf_exempt #?
+#@login_required
+#def get_followee(request):
+#    if request.method == 'POST':
+#        username = request.username
+        # Getting followee datas from db 
+#        followees = Follow_connection.objects.filter(username=username)
+        # return jsonresponse with followee data
+#        return JsonResponse([followee for followee in followees], safe=False)
 
 
 @login_required

@@ -18,29 +18,20 @@ def index(request):
 
     #else:
     #    pass
+    # is_authenticated 활용해서 elsw시 로그인 html로 redirect시키기
         
 
 @csrf_exempt 
 @login_required
-def get_follower(request):
+def get_follower(request, username):
     if request.method == 'POST':
-        username = request.user
+        username = User.objects.filter(username=username)
+        username = username.first().id
         # Getting follower datas from db 
         follows = Follow_connection.objects.filter(username=username)
         # return jsonresponse with follower data
         return JsonResponse([follow.serialize() for follow in follows], safe=False)
         #return JsonResponse(follows)
-
-
-#@csrf_exempt #?
-#@login_required
-#def get_followee(request):
-#    if request.method == 'POST':
-#        username = request.username
-        # Getting followee datas from db 
-#        followees = Follow_connection.objects.filter(username=username)
-        # return jsonresponse with followee data
-#        return JsonResponse([followee for followee in followees], safe=False)
 
 
 @login_required
@@ -65,9 +56,19 @@ def upload(request):
         return JsonResponse({"message": "Posts sent successfully."}, status=201)
 
 
-
+# Loading all posts
 def load_post(request):
     posts = Posts.objects.all()
+    posts = posts.order_by("-datetime").all()
+
+    return JsonResponse([post.serialize() for post in posts], safe=False)
+
+
+# Loading profile posts
+def profile_load_post(request, username):
+    name = User.objects.filter(username=username)
+    id_name = name.first().id
+    posts = Posts.objects.filter(username=id_name)
     posts = posts.order_by("-datetime").all()
 
     return JsonResponse([post.serialize() for post in posts], safe=False)

@@ -44,3 +44,4 @@ class Follow_connection(models.Model):
             "followee": [wee.username for wee in self.followee.all()]            
         }
         
+        

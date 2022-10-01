@@ -21,6 +21,44 @@ def index(request):
     # is_authenticated 활용해서 elsw시 로그인 html로 redirect시키기
         
 
+@login_required
+@csrf_exempt
+def follow_connection(request, username):
+    
+    # 로그인한 유저 모델 정보에 follow에 추가해야함, 위 username은 follow한 대상
+    loggedin_username = request.user
+    id_username = User.objects.filter(username=loggedin_username)
+    id_username = id_username.first().id
+    model_data = Follow_connection.objects.filter(username = id_username)
+    
+    if request.method == "POST":
+
+    # Check there is model which model.username is loggedin user
+    # if there is update the model inf, else make new model inf
+        if len(model_data) > 0:
+            data = json.loads(request.body)        
+            tem_username = User.objects.filter(username=username)
+            tem_username = tem_username.first().id
+            model_data.first().follower.add(tem_username)
+            
+            return JsonResponse({"message": "follower upload successfully!"})
+        else:
+            return JsonResponse({"message": "model_Data =< 0"})
+
+    elif request.method == "PUT":        
+        
+        if len(model_data) > 0:
+            data = json.loads(request.body)
+            #cliked_username = data["follower"]
+            tem_username = User.objects.filter(username=username)
+            tem_username = tem_username.first().id
+            model_data.first().follower.remove(tem_username)
+            
+            return JsonResponse({"message": "follower delete successfully!"})    
+        else:
+            return JsonResponse({"message": "model_Data =< 0"})
+
+
 @csrf_exempt 
 @login_required
 def get_follower(request, username):
@@ -117,6 +155,10 @@ def register(request):
         try:
             user = User.objects.create_user(username, email, password)
             user.save()
+            username_id = User.objects.filter(username=username)
+            username_id = username_id.first()
+            followup = Follow_connection(username=username_id)
+            followup.save()         
         except IntegrityError:
             return render(request, "network/register.html", {
                 "message": "Username already taken."

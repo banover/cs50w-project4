@@ -44,4 +44,4 @@ class Follow_connection(models.Model):
             "followee": [wee.username for wee in self.followee.all()]            
         }
         
-        
+        # 중복안되게 설정

@@ -14,18 +14,6 @@ document.addEventListener('DOMContentLoaded', function(){
 
     // Uploading written comment when submit button on click 
     document.querySelector('#new_post_form').onsubmit = upload_db;
-    
-    // profile view testing~
-    //document.querySelectorAll("a.profile_link").forEach(function(a) {
-    //    a.onclick = function() {
-    //        console.log(a);
-    //       let username = a.dataset.name;
-    //        profile_page(username);
-    //    }        
-    //});
-    //console.log(document.querySelectorAll('a.profile_link'));
-    
-    //document.querySelectorAll('a.profile_link').onclick = open_post();
 
     // Default value, load the index
     open_post();
@@ -46,7 +34,71 @@ function profile_page(username) {
     .then(response => response.json())
     .then(followers => {
         console.log(followers);
+        console.log(followers[0].username);
         console.log(followers[0].follower.length);
+        model_username = followers[0].username;
+
+
+        // Making follow button and unfollow button
+        let button_text = "Follow";
+        const follow_button = document.createElement('button');
+        follow_button.innerHTML = button_text;
+        //loddedgin_username = document.querySelector('strong');
+        //console.log(loddedgin_username);
+
+        document.querySelector('#follow_button').style.display = 'block';
+        document.querySelector('#unfollow_button').style.display = 'block';
+        
+        // username이 선택한 이름임.. 프로필 주인
+        //if (username === model_username){
+        //    document.querySelector('#follow_button').style.display = 'none';
+        //    document.querySelector('#unfollow_button').style.display = 'none';
+        //} else {
+        //    document.querySelector('#follow_button').style.display = 'block';
+        //    document.querySelector('#unfollow_button').style.display = 'none';
+        //}
+        
+        follow_button.addEventListener('click', function(){
+            console.log("follow_button is cliked!");
+            document.querySelector('#follow_button').style.display = 'none';
+            document.querySelector('#unfollow_button').style.display = 'block';
+            //fetch('') 활용해서 models 안에 Follow_connection에 upload해
+            fetch(`/follow_connection/${username}`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    follower: model_username
+                })
+            })
+            .then(response => response.json())
+            .then(message => {
+                console.log(message);
+            });
+        });
+
+        document.querySelector('#follow_button').append(follow_button);
+
+        let unfol_button_text = "Unfollow";
+        const unfollow_button = document.createElement('button');
+        unfollow_button.innerHTML = unfol_button_text;
+            
+        unfollow_button.addEventListener('click', function(){
+            console.log("unfollow_button is cliked!");
+            document.querySelector('#follow_button').style.display = 'block';
+            document.querySelector('#unfollow_button').style.display = 'none';
+
+            fetch(`/follow_connection/${username}`, {
+                method: 'PUT',
+                body: JSON.stringify({
+                    follower : model_username
+                })
+            })
+            .then(response => response.json())
+            .then(message => {
+                console.log(message);
+            });
+        });        
+        
+        document.querySelector('#unfollow_button').append(unfollow_button);
 
         // Finding number of follower and append it into follower_number_view tag
         const follower_number = "The number of follower: " + followers[0].follower.length;            
@@ -101,10 +153,7 @@ function profile_page(username) {
             });           
             
 
-        })
-
-        // Making follow button and unfollow button
-        
+        })        
 
         // follow&unfollow버튼 만들기(최근에 follow한 유저를 또 활용해야함, model을 손보든지 생각해보자)
 
@@ -142,6 +191,7 @@ function open_post (){
             // When one_post_header onclick, profile page will be viewd 
             one_post_header.addEventListener('click', function(){
                 console.log("a post header link clikecd!");
+                console.log(post.username);
                 profile_page(post.username);
             });
 

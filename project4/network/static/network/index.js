@@ -4,12 +4,24 @@ document.addEventListener('DOMContentLoaded', function(){
     document.querySelector('#composition_view').style.display = 'none';
     document.querySelector('#uploaded_posts_view').style.display = 'none';
     document.querySelector('#profile_page_view').style.display = 'none';
-    
+    document.querySelector('#following_posts_view').style.display = 'none';
 
-    // Showing the posts view
-    document.querySelector('#posts_button').addEventListener('click', open_post);
+    // Showing the posts view, when All posts button is onclick
+    document.querySelector('#posts_button').addEventListener('click', function(){
+        //localStorage.clear();
+        location.reload();        
+        open_post();
+    });
     
-    // SHowing the profile view
+    // Showing the following post view, when following button in onclick
+    //document.querySelector('#following_button').onclick = following_post;
+    document.querySelector('#following_button').addEventListener('click', function(){
+        //location.reload();
+        //setTimeout(following_post, 1000);
+        //caches.delete();   클릭 여러번 할 때, 연속적 fetch로 인한 데이터 중첩 방지법..찾아보자!     
+        following_post();
+    });
+    // SHowing the profile view when profile_button is onclik
     //document.querySelector('#profile_button').onclick = profile_page;
 
     // Uploading written comment when submit button on click 
@@ -20,12 +32,65 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 
 
+function following_post() {
+    
+    // Open the view tag
+    document.querySelector('#composition_view').style.display = 'none';
+    document.querySelector('#uploaded_posts_view').style.display = 'none';
+    document.querySelector('#profile_page_view').style.display = 'none';
+    document.querySelector('#following_posts_view').style.display = 'block';
+
+    // Requesting following posts
+    fetch('/following_load_post')
+    .then(response => response.json())
+    .then(posts => {
+        console.log(posts);
+
+        posts.forEach(function(post){
+
+            // Making container which is contain header and content
+            const post_container = document.createElement('div');
+            post_container.style.cssText = 'border-style: solid;border-width: 1px;margin-left: 10px;margin-right: 10px;padding-left: 17px;margin-bottom: 10px;';
+
+            // Making header in a post
+            let header = post.username;
+            const post_header = document.createElement('div')
+            post_header.innerHTML = header;
+            console.log(post_header);
+
+            post_header.addEventListener('click', function(){
+                console.log("post_header is onclick!")
+                profile_page(header);
+            });
+
+            // Making content in a post
+            let content = post.comment + "<br>" + post.timestamp + "<br>" + post.like;
+            const post_content = document.createElement('div');                        
+            post_content.innerHTML = content;
+            console.log(post_content);
+            
+            // Cotaining header and content into container
+            post_container.appendChild(post_header);
+            post_container.appendChild(post_content);
+            
+            // Appending container html following_posts_view div tag
+            document.querySelector('#following_posts_view').append(post_container);
+        })
+
+    });
+    
+    //return false;
+}
+
+
+
 function profile_page(username) {
 
     // Setting profile_page_view block
     document.querySelector('#composition_view').style.display = 'none';
     document.querySelector('#uploaded_posts_view').style.display = 'none';
     document.querySelector('#profile_page_view').style.display = 'block';
+    document.querySelector('#following_posts_view').style.display = 'none';
 
     // Requesting server for follow datas and create div and lists all
     fetch(`/get_follower/${username}`, {
@@ -33,31 +98,56 @@ function profile_page(username) {
     })
     .then(response => response.json())
     .then(followers => {
+
+        // For checking the followers return value
         console.log(followers);
         console.log(followers[0].username);
         console.log(followers[0].follower.length);
-        model_username = followers[0].username;
+        console.log(followers[0].follower);
+        console.log(followers[0].follower[0]);
+
+        // Setting logged in username
+        loggedin_username = followers[0].username;
 
 
-        // Making follow button and unfollow button
+        // Making follow button
         let button_text = "Follow";
         const follow_button = document.createElement('button');
         follow_button.innerHTML = button_text;
-        //loddedgin_username = document.querySelector('strong');
-        //console.log(loddedgin_username);
+             
+        // Checking username with model_username then show button properly
+        if (username === loggedin_username){
+            document.querySelector('#follow_button').style.display = 'none';
+            document.querySelector('#unfollow_button').style.display = 'none';
+        } else {
+            let loginuser_follower = followers[0].follower;
+            let found_follower = false;
+            console.log(loginuser_follower)
+            console.log(username)
+            for (let i = 0; i < loginuser_follower.length; i++){
+                if (username === loginuser_follower[i]){
+                    document.querySelector('#follow_button').style.display = 'none';
+                    document.querySelector('#unfollow_button').style.display = 'block'; 
+                    found_follower = true;
+                    break;
+                }
+            }
+            if (found_follower === false) {
+                document.querySelector('#follow_button').style.display = 'block';
+                document.querySelector('#unfollow_button').style.display = 'none';
+            }
 
-        document.querySelector('#follow_button').style.display = 'block';
-        document.querySelector('#unfollow_button').style.display = 'block';
+            //if (username in loginuser_follower){
+            //    document.querySelector('#follow_button').style.display = 'none';
+            //    document.querySelector('#unfollow_button').style.display = 'block';
+            //} else{
+            //    document.querySelector('#follow_button').style.display = 'block';
+            //    document.querySelector('#unfollow_button').style.display = 'none';
+            //}
+            
+        }
         
-        // username이 선택한 이름임.. 프로필 주인
-        //if (username === model_username){
-        //    document.querySelector('#follow_button').style.display = 'none';
-        //    document.querySelector('#unfollow_button').style.display = 'none';
-        //} else {
-        //    document.querySelector('#follow_button').style.display = 'block';
-        //    document.querySelector('#unfollow_button').style.display = 'none';
-        //}
-        
+        // When follow_button onclick, change data in Follow_connection models
         follow_button.addEventListener('click', function(){
             console.log("follow_button is cliked!");
             document.querySelector('#follow_button').style.display = 'none';
@@ -66,7 +156,7 @@ function profile_page(username) {
             fetch(`/follow_connection/${username}`, {
                 method: 'POST',
                 body: JSON.stringify({
-                    follower: model_username
+                    follower: username
                 })
             })
             .then(response => response.json())
@@ -77,10 +167,12 @@ function profile_page(username) {
 
         document.querySelector('#follow_button').append(follow_button);
 
+        // Making unfollow button
         let unfol_button_text = "Unfollow";
         const unfollow_button = document.createElement('button');
         unfollow_button.innerHTML = unfol_button_text;
-            
+        
+        // When unfollow_button onclick, change data in Follow_connection models
         unfollow_button.addEventListener('click', function(){
             console.log("unfollow_button is cliked!");
             document.querySelector('#follow_button').style.display = 'block';
@@ -89,7 +181,7 @@ function profile_page(username) {
             fetch(`/follow_connection/${username}`, {
                 method: 'PUT',
                 body: JSON.stringify({
-                    follower : model_username
+                    follower : username
                 })
             })
             .then(response => response.json())
@@ -134,7 +226,8 @@ function profile_page(username) {
            // }            
 
            // Requesting profile_load_post/<str:username> path to get username's posts
-            fetch(`/profile_load_post/${follower.username}`)
+            //fetch(`/profile_load_post/${follower.username}`)
+            fetch(`/profile_load_post/${username}`)
             .then(response => response.json())
             .then(posts => {
                 console.log(posts);
@@ -150,17 +243,13 @@ function profile_page(username) {
                     document.querySelector('#profile_posts').append(one_post);
                     
                 })
-            });           
-            
+            });
+        })
 
-        })        
+    });
 
-        // follow&unfollow버튼 만들기(최근에 follow한 유저를 또 활용해야함, model을 손보든지 생각해보자)
-
-
-    });    
-
-    return false
+    
+    //return false
 }
 
 function open_post (){
@@ -169,6 +258,7 @@ function open_post (){
     document.querySelector('#composition_view').style.display = 'block';
     document.querySelector('#uploaded_posts_view').style.display = 'block';
     document.querySelector('#profile_page_view').style.display = 'none';
+    document.querySelector('#following_posts_view').style.display = 'none';
     // added display whenever new div is created
     
     // Clear out comment field
@@ -215,7 +305,7 @@ function open_post (){
         })
     });
     
-    return false;
+    //return false;
 }
 
 
@@ -236,8 +326,8 @@ function upload_db() {
       console.log(result);
     });
 
-    reload(); 
-    //localStorage.clear();   
+    location.reload();
+    //localStorage.clear(); 
     open_post();
     return false;    
 }

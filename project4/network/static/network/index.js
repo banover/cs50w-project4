@@ -1,28 +1,20 @@
 document.addEventListener('DOMContentLoaded', function(){
 
-    // Setting display to none
-    document.querySelector('#composition_view').style.display = 'none';
-    document.querySelector('#uploaded_posts_view').style.display = 'none';
-    document.querySelector('#profile_page_view').style.display = 'none';
-    document.querySelector('#following_posts_view').style.display = 'none';
+    // Setting display to none 이부분의 innerhtml을 "" 놨으면 중복적용이 제거될텐데.. profile_page_view는 밑에 별도의 div tag들이 있어서 그것까지 해야함 애초에 설계가 별로
+    //document.querySelector('#composition_view').style.display = 'none';
+    //document.querySelector('#uploaded_posts_view').style.display = 'none';
+    //document.querySelector('#profile_page_view').style.display = 'none';
+    //document.querySelector('#following_posts_view').style.display = 'none';
 
     // Showing the posts view, when All posts button is onclick
-    document.querySelector('#posts_button').addEventListener('click', function(){
-        //localStorage.clear();
-        location.reload();        
+    document.querySelector('#posts_button').addEventListener('click', function(){      
         open_post();
     });
     
-    // Showing the following post view, when following button in onclick
-    //document.querySelector('#following_button').onclick = following_post;
+    // Showing the following post view, when following button in onclick    
     document.querySelector('#following_button').addEventListener('click', function(){
-        //location.reload();
-        //setTimeout(following_post, 1000);
-        //caches.delete();   클릭 여러번 할 때, 연속적 fetch로 인한 데이터 중첩 방지법..찾아보자!     
-        following_post();
-    });
-    // SHowing the profile view when profile_button is onclik
-    //document.querySelector('#profile_button').onclick = profile_page;
+        following_post();    
+    });    
 
     // Uploading written comment when submit button on click 
     document.querySelector('#new_post_form').onsubmit = upload_db;
@@ -39,6 +31,7 @@ function following_post() {
     document.querySelector('#uploaded_posts_view').style.display = 'none';
     document.querySelector('#profile_page_view').style.display = 'none';
     document.querySelector('#following_posts_view').style.display = 'block';
+    document.querySelector('#following_posts_view').innerHTML = "";
 
     // Requesting following posts
     fetch('/following_load_post')
@@ -70,16 +63,17 @@ function following_post() {
             console.log(post_content);
             
             // Cotaining header and content into container
-            post_container.appendChild(post_header);
-            post_container.appendChild(post_content);
-            
+            post_container.append(post_header);
+            post_container.append(post_content);
+            //appendChild vs append
+
             // Appending container html following_posts_view div tag
             document.querySelector('#following_posts_view').append(post_container);
         })
 
     });
     
-    //return false;
+    return false;
 }
 
 
@@ -91,6 +85,16 @@ function profile_page(username) {
     document.querySelector('#uploaded_posts_view').style.display = 'none';
     document.querySelector('#profile_page_view').style.display = 'block';
     document.querySelector('#following_posts_view').style.display = 'none';
+
+    document.querySelector('#follow_button').innerHTML = '';
+    document.querySelector('#unfollow_button').innerHTML = '';
+    document.querySelector('#number_of_follower').innerHTML = '';
+    document.querySelector('#number_of_followee').innerHTML = '';
+    document.querySelector('#profile_posts').innerHTML = '';
+
+    // Show the profiel page name
+    //let title = '<h1>Profile</h1>'
+    //document.querySelector('#profile_page_view').innerHTML = title;
 
     // Requesting server for follow datas and create div and lists all
     fetch(`/get_follower/${username}`, {
@@ -108,44 +112,11 @@ function profile_page(username) {
 
         // Setting logged in username
         loggedin_username = followers[0].username;
-
-
+        
         // Making follow button
         let button_text = "Follow";
         const follow_button = document.createElement('button');
         follow_button.innerHTML = button_text;
-             
-        // Checking username with model_username then show button properly
-        if (username === loggedin_username){
-            document.querySelector('#follow_button').style.display = 'none';
-            document.querySelector('#unfollow_button').style.display = 'none';
-        } else {
-            let loginuser_follower = followers[0].follower;
-            let found_follower = false;
-            console.log(loginuser_follower)
-            console.log(username)
-            for (let i = 0; i < loginuser_follower.length; i++){
-                if (username === loginuser_follower[i]){
-                    document.querySelector('#follow_button').style.display = 'none';
-                    document.querySelector('#unfollow_button').style.display = 'block'; 
-                    found_follower = true;
-                    break;
-                }
-            }
-            if (found_follower === false) {
-                document.querySelector('#follow_button').style.display = 'block';
-                document.querySelector('#unfollow_button').style.display = 'none';
-            }
-
-            //if (username in loginuser_follower){
-            //    document.querySelector('#follow_button').style.display = 'none';
-            //    document.querySelector('#unfollow_button').style.display = 'block';
-            //} else{
-            //    document.querySelector('#follow_button').style.display = 'block';
-            //    document.querySelector('#unfollow_button').style.display = 'none';
-            //}
-            
-        }
         
         // When follow_button onclick, change data in Follow_connection models
         follow_button.addEventListener('click', function(){
@@ -166,7 +137,7 @@ function profile_page(username) {
         });
 
         document.querySelector('#follow_button').append(follow_button);
-
+        
         // Making unfollow button
         let unfol_button_text = "Unfollow";
         const unfollow_button = document.createElement('button');
@@ -191,25 +162,53 @@ function profile_page(username) {
         });        
         
         document.querySelector('#unfollow_button').append(unfollow_button);
-
+        
         // Finding number of follower and append it into follower_number_view tag
         const follower_number = "The number of follower: " + followers[0].follower.length;            
         const follower_number_view = document.createElement('div');
         follower_number_view.innerHTML = follower_number;
-        document.querySelector('#number_of_follower').append(follower_number_view);
 
+        document.querySelector('#number_of_follower').append(follower_number_view);
+        
         // Finding number of followee and append it into followee_number_view tag
         const followee_number = "The number of followee: " + followers[0].followee.length;
         const followee_number_view = document.createElement('div');
         followee_number_view.innerHTML = followee_number;
-        document.querySelector('#number_of_followee').append(followee_number_view)
+
+        document.querySelector('#number_of_followee').append(followee_number_view);
         
+        
+
+        // Checking username with model_username then show button properly
+        if (username === loggedin_username){
+
+            document.querySelector('#follow_button').style.display = 'none';
+            document.querySelector('#unfollow_button').style.display = 'none';
+        } else {
+
+            let loginuser_follower = followers[0].follower;
+            let found_follower = false;
+            console.log(loginuser_follower)
+            console.log(username)
+            for (let i = 0; i < loginuser_follower.length; i++){                
+                if (username === loginuser_follower[i]){
+                    document.querySelector('#follow_button').style.display = 'none';
+                    document.querySelector('#unfollow_button').style.display = 'block'; 
+                    found_follower = true;
+                    break;
+                }
+            }
+            if (found_follower === false) {
+                document.querySelector('#follow_button').style.display = 'block';
+                document.querySelector('#unfollow_button').style.display = 'none';
+            }                       
+        }
+
+
         // Per each follower, listing username's(follower's) posts
         followers.forEach(function(follower){
 
-            console.log(follower);
-            //console.log(follower.follower[0]);
-            //console.log(follower.username);
+            console.log(follower);            
 
             // Listing follower users
             //for (let i = 0; i < follower.follower.length; i++){
@@ -240,7 +239,7 @@ function profile_page(username) {
                     one_post.innerHTML = content;
                     one_post.style.cssText = 'border-style: solid;border-width: 1px;margin-left: 10px;margin-right: 10px;padding-left: 17px;margin-bottom: 10px;';
                     
-                    document.querySelector('#profile_posts').append(one_post);
+                    document.querySelector('#profile_posts').append(one_post);                    
                     
                 })
             });
@@ -249,7 +248,7 @@ function profile_page(username) {
     });
 
     
-    //return false
+    return false
 }
 
 function open_post (){
@@ -259,18 +258,30 @@ function open_post (){
     document.querySelector('#uploaded_posts_view').style.display = 'block';
     document.querySelector('#profile_page_view').style.display = 'none';
     document.querySelector('#following_posts_view').style.display = 'none';
+    document.querySelector('#uploaded_posts_view').innerHTML = '';
     // added display whenever new div is created
     
     // Clear out comment field
     document.querySelector('#comment').value = '';
 
+    let counter = 1;
+    let list_number = 10
+    const start = counter;
+    const end = start + list_number - 1
+    counter = end + 1;
+    let number_of_posts = 0;    
+
     //Showing posts
-    fetch('/load_post')
+    fetch(`/load_post?start=${start}&end=${end}`)
+    //fetch(`/posts?start=${start}&end=${end}`)
     .then(response => response.json())
     .then(posts => {
         console.log(posts);
+        console.log(posts.posts);
+        console.log(posts.posts_number);
+        number_of_posts = posts.posts_number;
 
-        posts.forEach(function(post){
+        posts.posts.forEach(function(post){
 
             // Setting header text with element in posts
             let header = post.username + "<br>";
@@ -301,11 +312,23 @@ function open_post (){
             post_container.appendChild(one_post_header);
             post_container.appendChild(one_post_content);
             document.querySelector('#uploaded_posts_view').append(post_container);
-
+        
         })
+
+        if (parseInt(number_of_posts, 10) === 10) {
+            let button_value = "Next";
+            const next_button = document.createElement('button');
+            next_button.innerHTML = button_value;
+            //next_button.addEventListener('click', function(){
+
+            //});
+            document.querySelector('#uploaded_posts_view').append(next_button);
+        }
+        
+
     });
     
-    //return false;
+    return false;
 }
 
 

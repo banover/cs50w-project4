@@ -33,30 +33,27 @@ def following_load_post(request):
         loginuser = request.user
         loginuser_id = User.objects.filter(username=loginuser)
         loginuser_id = loginuser_id.first().id
+
         # Finding out loginuser's follower in list form
         loginuser_follower_list = Follow_connection.objects.filter(username=loginuser_id)
         loginuser_follower_list = loginuser_follower_list.first().follower.all()
-        #loginuser_follower_list = loginuser_follower_list.first().username
-        #loginuser_follower_list = loginuser_follower_list[0].follower
+        
         # Filtering out followers' posts
         follower_posts = Posts.objects.filter(username__in=loginuser_follower_list)
-        #follower_posts = Posts.objects.filter(username=loginuser_id)
-
+        
         # Ordering posts in reverse chronological order
         follower_posts = follower_posts.order_by("-datetime").all()
 
         # Return follower's posts in serialized
         return JsonResponse([post.serialize() for post in follower_posts], safe=False)
-        #return JsonResponse([post.serialize() for post in loginuser_follower_list], safe=False)  
         
-
 
 @login_required
 @csrf_exempt
 def follow_connection(request, username):
     
     # 위 username은 링크 이름 클릭한 대상임
-    # 로그인한 유저 모델 정보에 follow에 추가해야함, 위 username은 follow한 대상
+    # Setting proper valriables for follower and followee upload and for remove follower + ee
     loggedin_username = request.user
     id_username = User.objects.filter(username=loggedin_username)
     id_username = id_username.first().id
@@ -65,9 +62,9 @@ def follow_connection(request, username):
     if request.method == "POST":
 
     # Check there is model which model.username is loggedin user
-    # if there is update the model inf, else make new model inf
+    # Updating the model information
         if len(model_data) > 0:
-            #data = json.loads(request.body)        
+                    
             # Adding username in login user's follower list 
             tem_username = User.objects.filter(username=username)
             tem_username = tem_username.first().id
@@ -84,7 +81,7 @@ def follow_connection(request, username):
     elif request.method == "PUT":        
         
         if len(model_data) > 0:
-            #data = json.loads(request.body)
+            
             # Erasing username in login user's follower list            
             tem_username = User.objects.filter(username=username)
             tem_username = tem_username.first().id
@@ -102,20 +99,25 @@ def follow_connection(request, username):
 @csrf_exempt 
 @login_required
 def get_follower(request, username):
+
     if request.method == 'POST':
+
+        # Setting variables for getting follower inf
         loggedin_usrname = request.user
         username = User.objects.filter(username=loggedin_usrname)
         username = username.first().id
+
         # Getting follower datas from db 
         follows = Follow_connection.objects.filter(username=username)
-        # return jsonresponse with follower data
+        
+        # Return jsonresponse with follower data
         return JsonResponse([follow.serialize() for follow in follows], safe=False)
-        #return JsonResponse(follows)
-
+        
 
 @login_required
 @csrf_exempt
 def upload(request):
+
     if request.method == "POST":
 
         # Setting request data to variables
@@ -131,25 +133,42 @@ def upload(request):
         )
         posts.save()
 
-        # Return jason response (view.py - compose부분 참고 FROM mail(pj3))
+        # Return jason response 
         return JsonResponse({"message": "Posts sent successfully."}, status=201)
 
 
 # Loading all posts
 def load_post(request):
-    posts = Posts.objects.all()
-    posts = posts.order_by("-datetime").all()
 
-    return JsonResponse([post.serialize() for post in posts], safe=False)
+    # Get start and end points
+    start = int(request.GET.get("start") or 0)
+    end = int(request.GET.get("end") or (start + 9))
+
+    # Loading all post datas
+    posts = Posts.objects.all()
+    #posts = posts.order_by("-datetime").all()  <이 밑에부터 수정>
+    posts = posts.order_by("-datetime")[start - 1:end]   #
+    posts_number = len(Posts.objects.all())
+    a = [post.serialize() for post in posts]
+    b = len(a)
+    # Return json response per post
+    #return JsonResponse([post.serialize() for post in posts], safe=False)
+    return JsonResponse({"posts":a,
+                         "posts_number":b}, safe=False)
 
 
 # Loading profile posts
 def profile_load_post(request, username):
+
+    # Setting variables for loading posts
     name = User.objects.filter(username=username)
     id_name = name.first().id
+
+    # Loading posts from db
     posts = Posts.objects.filter(username=id_name)
     posts = posts.order_by("-datetime").all()
 
+    # Retrun json response per post
     return JsonResponse([post.serialize() for post in posts], safe=False)
 
 
@@ -192,14 +211,14 @@ def register(request):
                 "message": "Passwords must match."
             })
 
-        # Attempt to create new user
+        # Attempt to create new user and new follow_connection
         try:
             user = User.objects.create_user(username, email, password)
             user.save()
             username_id = User.objects.filter(username=username)
             username_id = username_id.first()
             followup = Follow_connection(username=username_id)
-            followup.save()         
+            followup.save()
         except IntegrityError:
             return render(request, "network/register.html", {
                 "message": "Username already taken."

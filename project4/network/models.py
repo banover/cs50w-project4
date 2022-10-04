@@ -23,25 +23,16 @@ class Posts(models.Model):
         }
 
 
-#class Follow(models.Model):
-#    username = models.ForeignKey("User", on_delete=models.CASCADE, related_name="follow_username")
-#    follower_number = models.IntegerField(validators=[MinValueValidator(0)], default=0)
-#    followee_number = models.IntegerField(validators=[MinValueValidator(0)], default=0)
-
-
 class Follow_connection(models.Model):
     username = models.ForeignKey("User", on_delete=models.CASCADE, related_name="follow_username")
     follower = models.ManyToManyField("User", related_name="followers")
     followee = models.ManyToManyField("User", related_name="followees")
-    #follower = models.ForeignKey("User", on_delete=models.CASCADE, related_name="follower_username")
-    #followee = models.ForeignKey("User", on_delete=models.CASCADE, related_name="followee_username")
-    # many to many 한번 써봐? mail project3의 compose부분을 잘 봐서 가능함
+        
     def serialize(self):
         return {
             "id": self.id,
             "username": self.username.username, #username in Posts is foreignkey, inside of it many field in int.
             "follower": [wer.username for wer in self.follower.all()],
             "followee": [wee.username for wee in self.followee.all()]            
-        }
+        } 
         
-        # 중복안되게 설정

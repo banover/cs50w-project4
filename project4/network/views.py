@@ -138,23 +138,47 @@ def upload(request):
 
 
 # Loading all posts
-def load_post(request):
+def load_post(request, button_name, username):
 
     # Get start and end points
     start = int(request.GET.get("start") or 0)
     end = int(request.GET.get("end") or (start + 9))
 
-    # Loading all post datas
-    posts = Posts.objects.all()
-    #posts = posts.order_by("-datetime").all()  <이 밑에부터 수정>
-    posts = posts.order_by("-datetime")[start - 1:end]   #
-    posts_number = len(Posts.objects.all())
-    a = [post.serialize() for post in posts]
-    b = len(a)
-    # Return json response per post
-    #return JsonResponse([post.serialize() for post in posts], safe=False)
-    return JsonResponse({"posts":a,
-                         "posts_number":b}, safe=False)
+    if button_name == "all_post":
+
+        # Loading all post datas
+        posts = Posts.objects.all()
+        #posts = posts.order_by("-datetime").all()  <이 밑에부터 수정>
+        posts = posts.order_by("-datetime")[start - 1:end]   #
+        posts_number = len(Posts.objects.all())
+        a = [post.serialize() for post in posts]
+        b = len(a)
+        # Return json response per post
+        #return JsonResponse([post.serialize() for post in posts], safe=False)
+        return JsonResponse({"posts":a,
+                            "posts_number":b}, safe=False)
+
+    elif button_name =="profile":
+
+        # Setting variables for loading posts
+        name = User.objects.filter(username=username) # 여기 username넣을 방법 강구하기
+        id_name = name.first().id
+
+        # Loading posts from db
+        posts = Posts.objects.filter(username=id_name)
+        #posts = posts.order_by("-datetime").all()    ****여기서부터 수정
+        posts = posts.order_by("-datetime")[start - 1:end]
+        a = [post.serialize() for post in posts]
+        b = len(a)
+
+        # Retrun json response per post
+        #return JsonResponse([post.serialize() for post in posts], safe=False)
+        return JsonResponse({"posts":a,
+                            "posts_number":b}, safe=False)
+    
+    else:
+        pass
+
 
 
 # Loading profile posts
@@ -166,11 +190,15 @@ def profile_load_post(request, username):
 
     # Loading posts from db
     posts = Posts.objects.filter(username=id_name)
-    posts = posts.order_by("-datetime").all()
+    #posts = posts.order_by("-datetime").all()    ****여기서부터 수정
+    posts = posts.order_by("-datetime")[start - 1:end]
+    a = [post.serialize() for post in posts]
+    b = len(a)
 
     # Retrun json response per post
-    return JsonResponse([post.serialize() for post in posts], safe=False)
-
+    #return JsonResponse([post.serialize() for post in posts], safe=False)
+    return JsonResponse({"posts":a,
+                         "posts_number":b}, safe=False)
 
 def login_view(request):
     if request.method == "POST":

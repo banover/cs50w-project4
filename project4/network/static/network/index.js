@@ -1,3 +1,9 @@
+let counter = 1;
+const list_number = 10;
+let page = 0
+//let pagetext = "page" + page;
+
+
 document.addEventListener('DOMContentLoaded', function(){
 
     // Setting display to none 이부분의 innerhtml을 "" 놨으면 중복적용이 제거될텐데.. profile_page_view는 밑에 별도의 div tag들이 있어서 그것까지 해야함 애초에 설계가 별로
@@ -8,12 +14,16 @@ document.addEventListener('DOMContentLoaded', function(){
 
     // Showing the posts view, when All posts button is onclick
     document.querySelector('#posts_button').addEventListener('click', function(){      
+        counter = 1;
+        page = 0;
         open_post();
     });
     
     // Showing the following post view, when following button in onclick    
     document.querySelector('#following_button').addEventListener('click', function(){
-        following_post();    
+        counter = 1;
+        page = 0;
+        following_post();
     });    
 
     // Uploading written comment when submit button on click 
@@ -79,6 +89,9 @@ function following_post() {
 
 
 function profile_page(username) {
+    console.log(counter);
+    console.log(page);
+
 
     // Setting profile_page_view block
     document.querySelector('#composition_view').style.display = 'none';
@@ -104,11 +117,11 @@ function profile_page(username) {
     .then(followers => {
 
         // For checking the followers return value
-        console.log(followers);
-        console.log(followers[0].username);
-        console.log(followers[0].follower.length);
-        console.log(followers[0].follower);
-        console.log(followers[0].follower[0]);
+        //console.log(followers);
+        //console.log(followers[0].username);
+        //console.log(followers[0].follower.length);
+        //console.log(followers[0].follower);
+        //console.log(followers[0].follower[0]);
 
         // Setting logged in username
         loggedin_username = followers[0].username;
@@ -226,15 +239,26 @@ function profile_page(username) {
 
            // Requesting profile_load_post/<str:username> path to get username's posts
             //fetch(`/profile_load_post/${follower.username}`)
-            fetch(`/profile_load_post/${username}`)
+
+            let pagetext = "page" + page;
+            const start = counter;
+            const end = start + list_number - 1
+            counter = end + 1;
+            let number_of_posts = 0;  
+
+            //fetch(`/profile_load_post/${username}?start=${start}&end=${end}`)
+            fetch(`/load_post/profile/${username}?start=${start}&end=${end}`)
             .then(response => response.json())
             .then(posts => {
                 console.log(posts);
+                number_of_posts = posts.posts_number;
                 
                 // Making a post content inside a container element 
-                posts.forEach(function(post){ //foreignkey 설정되어있는 field활용할때 그 original model의 id를 활용해야함
+                posts.posts.forEach(function(post){ //foreignkey 설정되어있는 field활용할때 그 original model의 id를 활용해야함
                     let content = post.username + "<br>" + post.comment + "<br>" + post.timestamp + "<br>" + post.like;
                     const one_post = document.createElement('div');
+                    one_post.className = pagetext;
+                    console.log(pagetext);
                     //const hr = document.createElement('hr');
                     one_post.innerHTML = content;
                     one_post.style.cssText = 'border-style: solid;border-width: 1px;margin-left: 10px;margin-right: 10px;padding-left: 17px;margin-bottom: 10px;';
@@ -242,7 +266,42 @@ function profile_page(username) {
                     document.querySelector('#profile_posts').append(one_post);                    
                     
                 })
+
+                
+
             });
+            if (parseInt(number_of_posts, 10) === 10) {
+                let button_value = "Next";
+                const next_button = document.createElement('button');
+                next_button.innerHTML = button_value;
+                next_button.addEventListener('click', function(){
+                    //document.querySelector(`.${pagetext}`).remove();
+                    document.querySelector('#profile_posts').innerHTML = "";
+                    page++;
+                    let button_name = "profile";
+                    listing_posts(button_name, username); ///////////
+
+                });
+                document.querySelector('#profile_posts').append(next_button);
+            }
+    
+            if (page > 0) {
+                let button_value = "Previous";
+                const previous_button = document.createElement('button');
+                previous_button.innerHTML = button_value;
+                previous_button.addEventListener('click', function(){
+                    document.querySelector('#profile_posts').innerHTML = "";
+                    //let remove_page = document.querySelectorAll(`div.${pagetext}`);
+                    //console.log(remove_page);
+                    //remove_page.remove();
+                    page--;
+                    counter = counter - 20;
+                    let button_name = "profile";
+                    listing_posts(button_name, username);      /////////                  
+                    
+                });
+                document.querySelector('#profile_posts').append(previous_button);
+            }
         })
 
     });
@@ -264,18 +323,122 @@ function open_post (){
     // Clear out comment field
     document.querySelector('#comment').value = '';
 
-    let counter = 1;
-    let list_number = 10
+    let pagetext = "page" + page;
     const start = counter;
     const end = start + list_number - 1
     counter = end + 1;
     let number_of_posts = 0;    
 
     //Showing posts
-    fetch(`/load_post?start=${start}&end=${end}`)
+    fetch(`/load_post/all_post/random?start=${start}&end=${end}`)
     //fetch(`/posts?start=${start}&end=${end}`)
     .then(response => response.json())
     .then(posts => {
+        console.log(posts);
+        console.log(posts.posts);
+        console.log(posts.posts_number);
+        number_of_posts = posts.posts_number;
+
+        posts.posts.forEach(function(post){
+
+            // Setting header text with element in posts
+            let header = post.username + "<br>";
+            const one_post_header = document.createElement('a');            
+            one_post_header.innerHTML = header;
+            console.log(one_post_header);
+
+            // When one_post_header onclick, profile page will be viewd 
+            one_post_header.addEventListener('click', function(){
+                console.log("a post header link clikecd!");
+                console.log(post.username);
+                profile_page(post.username);
+                //let button_name = "profile";
+                //listing_posts(button_name)
+            });
+
+            // Setting content text with element in posts
+            let content = post.comment + "<br>" + post.timestamp + "<br>" + post.like;
+            const one_post_content = document.createElement('div');                        
+            one_post_content.innerHTML = content;
+            console.log(one_post_content);          
+            
+            // Setting post container in posts
+            const post_container = document.createElement('div');   
+            post_container.className = pagetext;
+            console.log(pagetext);
+
+            // Styling container
+            post_container.style.cssText = 'border-style: solid;border-width: 1px;margin-left: 10px;margin-right: 10px;padding-left: 17px;margin-bottom: 10px;';
+            
+            // Appending header and content element into post container
+            post_container.appendChild(one_post_header);
+            post_container.appendChild(one_post_content);
+            document.querySelector('#uploaded_posts_view').append(post_container);
+        
+        })
+
+        if (parseInt(number_of_posts, 10) === 10) {
+            let button_value = "Next";
+            const next_button = document.createElement('button');
+            next_button.innerHTML = button_value;
+            next_button.addEventListener('click', function(){
+                //document.querySelector(`.${pagetext}`).remove();
+                document.querySelector('#uploaded_posts_view').innerHTML = "";
+                page++;
+                let button_name = "all_post";
+                let username = "random";
+                listing_posts(button_name, username);
+                
+                
+                
+            });
+            document.querySelector('#uploaded_posts_view').append(next_button);
+        }
+
+        if (page > 0) {
+            let button_value = "Previous";
+            const previous_button = document.createElement('button');
+            previous_button.innerHTML = button_value;
+            previous_button.addEventListener('click', function(){
+                document.querySelector('#uploaded_posts_view').innerHTML = "";
+                //let remove_page = document.querySelectorAll(`div.${pagetext}`);
+                //console.log(remove_page);
+                //remove_page.remove();
+                page--;
+                counter = counter - 20;
+                let button_name = "all_post";
+                let username = "random";
+                listing_posts(button_name, username);
+                
+                
+            });
+            document.querySelector('#uploaded_posts_view').append(previous_button);
+        }
+            
+    });
+    
+    return false;
+}
+
+
+
+function listing_posts(button_name, username){
+
+    console.log(button_name);
+    let pagetext = "page" + page;
+    const start = counter;
+    const end = start + list_number - 1
+    counter = end + 1;
+    let number_of_posts = 0;
+
+    //if (button_name === "all_post"){}
+
+    
+    fetch(`/load_post/${button_name}/${username}?start=${start}&end=${end}`) 
+    //fetch(`/posts?start=${start}&end=${end}`)
+    .then(response => response.json())
+    .then(posts => {
+
         console.log(posts);
         console.log(posts.posts);
         console.log(posts.posts_number);
@@ -304,31 +467,56 @@ function open_post (){
             
             // Setting post container in posts
             const post_container = document.createElement('div');   
+            post_container.className = pagetext;
             
+            
+
             // Styling container
             post_container.style.cssText = 'border-style: solid;border-width: 1px;margin-left: 10px;margin-right: 10px;padding-left: 17px;margin-bottom: 10px;';
-            
+                        
             // Appending header and content element into post container
             post_container.appendChild(one_post_header);
             post_container.appendChild(one_post_content);
             document.querySelector('#uploaded_posts_view').append(post_container);
         
-        })
+            
+            
+        });
+        
 
         if (parseInt(number_of_posts, 10) === 10) {
             let button_value = "Next";
             const next_button = document.createElement('button');
             next_button.innerHTML = button_value;
-            //next_button.addEventListener('click', function(){
-
-            //});
+            next_button.addEventListener('click', function(){
+                //document.querySelectorAll(`div.${pagetext}`).remove();
+                document.querySelector('#uploaded_posts_view').innerHTML = "";
+                listing_posts(button_name);
+                page++;
+                
+            });
             document.querySelector('#uploaded_posts_view').append(next_button);
         }
-        
 
+        if (page > 0) {
+            let button_value = "Previous";
+            const previous_button = document.createElement('button');
+            previous_button.innerHTML = button_value;
+            previous_button.addEventListener('click', function(){
+                //document.querySelectorAll(`div.${pagetext}`).remove();
+                document.querySelector('#uploaded_posts_view').innerHTML = "";
+                page--;
+                counter = counter - 20;
+                listing_posts(button_name);
+                
+            });
+            document.querySelector('#uploaded_posts_view').append(previous_button);
+        }
     });
+
     
-    return false;
+    
+
 }
 
 

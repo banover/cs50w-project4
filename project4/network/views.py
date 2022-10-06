@@ -43,10 +43,15 @@ def following_load_post(request):
         
         # Ordering posts in reverse chronological order
         follower_posts = follower_posts.order_by("-datetime").all()
+        a = [post.serialize() for post in follower_posts]
+        b = len(a)
 
         # Return follower's posts in serialized
-        return JsonResponse([post.serialize() for post in follower_posts], safe=False)
+        #return JsonResponse([post.serialize() for post in follower_posts], safe=False)
         
+        # Retrun json response per post        
+        return JsonResponse({"posts":a,
+                            "posts_number":b}, safe=False)
 
 @login_required
 @csrf_exempt
@@ -161,7 +166,7 @@ def load_post(request, button_name, username):
     elif button_name =="profile":
 
         # Setting variables for loading posts
-        name = User.objects.filter(username=username) # 여기 username넣을 방법 강구하기
+        name = User.objects.filter(username=username) 
         id_name = name.first().id
 
         # Loading posts from db
@@ -176,8 +181,36 @@ def load_post(request, button_name, username):
         return JsonResponse({"posts":a,
                             "posts_number":b}, safe=False)
     
+    elif button_name == "following":
+
+        # Setting loggedin user id
+        loginuser = request.user
+        loginuser_id = User.objects.filter(username=loginuser)
+        loginuser_id = loginuser_id.first().id
+
+        # Finding out loginuser's follower in list form
+        loginuser_follower_list = Follow_connection.objects.filter(username=loginuser_id)
+        loginuser_follower_list = loginuser_follower_list.first().follower.all()
+        
+        # Filtering out followers' posts
+        follower_posts = Posts.objects.filter(username__in=loginuser_follower_list)
+        
+        # Ordering posts in reverse chronological order
+        #follower_posts = follower_posts.order_by("-datetime").all()
+        follower_posts = follower_posts.order_by("-datetime")[start - 1:end]
+        a = [post.serialize() for post in follower_posts]
+        b = len(a)
+
+        # Return follower's posts in serialized
+        #return JsonResponse([post.serialize() for post in follower_posts], safe=False)
+        
+        # Retrun json response per post        
+        return JsonResponse({"posts":a,
+                            "posts_number":b}, safe=False)
+
     else:
         pass
+        
 
 
 

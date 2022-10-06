@@ -44,15 +44,31 @@ function following_post() {
     document.querySelector('#following_posts_view').innerHTML = "";
 
     // Requesting following posts
-    fetch('/following_load_post')
+    let button_name = "following";
+    let username = "following_random";
+    counter = 1;
+    page = 0;
+    listing_posts(button_name, username);
+
+    /*
+    let pagetext = "page" + page;
+    const start = counter;
+    const end = start + list_number - 1
+    counter = end + 1;
+    let number_of_posts = 0;
+    fetch(`/load_post/${button_name}/${username}?start=${start}&end=${end}`)
     .then(response => response.json())
     .then(posts => {
         console.log(posts);
+        number_of_posts = posts.posts_number;
+        console.log(number_of_posts);
 
-        posts.forEach(function(post){
+
+        posts.posts.forEach(function(post){
 
             // Making container which is contain header and content
             const post_container = document.createElement('div');
+            post_container.className = pagetext;
             post_container.style.cssText = 'border-style: solid;border-width: 1px;margin-left: 10px;margin-right: 10px;padding-left: 17px;margin-bottom: 10px;';
 
             // Making header in a post
@@ -79,10 +95,52 @@ function following_post() {
 
             // Appending container html following_posts_view div tag
             document.querySelector('#following_posts_view').append(post_container);
+
         })
 
+        if (parseInt(number_of_posts, 10) === 10) {
+            let button_value = "Next";
+            const next_button = document.createElement('button');
+            next_button.innerHTML = button_value;
+            next_button.addEventListener('click', function(){
+                //document.querySelector(`.${pagetext}`).remove();
+                document.querySelector('#following_posts_view').innerHTML = "";
+                page++;
+                let button_name = "following";
+                let username = "random";
+                const start = counter;
+                const end = start + list_number - 1
+                console.log(start);
+                console.log(end);
+                listing_posts(button_name, username);
+                
+            });
+            document.querySelector('#following_posts_view').append(next_button);
+        }
+
+        if (page > 0) {
+            let button_value = "Previous";
+            const previous_button = document.createElement('button');
+            previous_button.innerHTML = button_value;
+            previous_button.addEventListener('click', function(){
+                document.querySelector('#following_posts_view').innerHTML = "";
+                //let remove_page = document.querySelectorAll(`div.${pagetext}`);
+                //console.log(remove_page);
+                //remove_page.remove();
+                page--;
+                counter = counter - 20;
+                let button_name = "following";
+                let username = "random";
+                const start = counter;
+                const end = start + list_number - 1
+                listing_posts(button_name, username);
+                
+            });
+            document.querySelector('#following_posts_view').append(previous_button);
+        }
+
     });
-    
+    */
     return false;
 }
 
@@ -221,7 +279,7 @@ function profile_page(username) {
         // Per each follower, listing username's(follower's) posts
         followers.forEach(function(follower){
 
-            console.log(follower);            
+            console.log(follower.username);            
 
             // Listing follower users
             //for (let i = 0; i < follower.follower.length; i++){
@@ -240,19 +298,32 @@ function profile_page(username) {
            // Requesting profile_load_post/<str:username> path to get username's posts
             //fetch(`/profile_load_post/${follower.username}`)
 
+            let button_name = "profile";
+            let name = username;
+            counter = 1;
+            page = 0;
+            listing_posts(button_name, name);
+            /*
+            counter = 1;
+            page = 0;
             let pagetext = "page" + page;
             const start = counter;
             const end = start + list_number - 1
             counter = end + 1;
+            console.log(counter);
             let number_of_posts = 0;  
 
             //fetch(`/profile_load_post/${username}?start=${start}&end=${end}`)
             fetch(`/load_post/profile/${username}?start=${start}&end=${end}`)
-            .then(response => response.json())
+            .then(response => response.json())  //위에 username을 follower.username도 써도됨
             .then(posts => {
                 console.log(posts);
+                console.log(posts.posts_number);
+                console.log(start);
+                console.log(end);
+
                 number_of_posts = posts.posts_number;
-                
+                console.log(posts.posts_number);
                 // Making a post content inside a container element 
                 posts.posts.forEach(function(post){ //foreignkey 설정되어있는 field활용할때 그 original model의 id를 활용해야함
                     let content = post.username + "<br>" + post.comment + "<br>" + post.timestamp + "<br>" + post.like;
@@ -267,41 +338,48 @@ function profile_page(username) {
                     
                 })
 
-                
+                //console.log(number_of_posts);
+                if (parseInt(number_of_posts, 10) === 10) {
+                    let button_value = "Next";
+                    const next_button = document.createElement('button');
+                    next_button.innerHTML = button_value;
+                    next_button.addEventListener('click', function(){
+                        //document.querySelector(`.${pagetext}`).remove();
+                        document.querySelector('#profile_posts').innerHTML = "";
+                        page++;
+                        let button_name = "profile";                        
+                        const start = counter;
+                        const end = start + list_number - 1
+                        //counter = end + 1;
+                        console.log(start);
+                        console.log(end);
+                        console.log(username);
+                        listing_posts(button_name, username); ///////////
+
+                    });
+                    document.querySelector('#profile_posts').append(next_button);
+                }
+        
+                if (page > 0) {
+                    let button_value = "Previous";
+                    const previous_button = document.createElement('button');
+                    previous_button.innerHTML = button_value;
+                    previous_button.addEventListener('click', function(){
+                        document.querySelector('#profile_posts').innerHTML = "";
+                        //let remove_page = document.querySelectorAll(`div.${pagetext}`);
+                        //console.log(remove_page);
+                        //remove_page.remove();
+                        page--;
+                        counter = counter - 20;
+                        let button_name = "profile";
+                        listing_posts(button_name, username);      /////////                  
+                        
+                    });
+                    document.querySelector('#profile_posts').append(previous_button);
+                }                
 
             });
-            if (parseInt(number_of_posts, 10) === 10) {
-                let button_value = "Next";
-                const next_button = document.createElement('button');
-                next_button.innerHTML = button_value;
-                next_button.addEventListener('click', function(){
-                    //document.querySelector(`.${pagetext}`).remove();
-                    document.querySelector('#profile_posts').innerHTML = "";
-                    page++;
-                    let button_name = "profile";
-                    listing_posts(button_name, username); ///////////
-
-                });
-                document.querySelector('#profile_posts').append(next_button);
-            }
-    
-            if (page > 0) {
-                let button_value = "Previous";
-                const previous_button = document.createElement('button');
-                previous_button.innerHTML = button_value;
-                previous_button.addEventListener('click', function(){
-                    document.querySelector('#profile_posts').innerHTML = "";
-                    //let remove_page = document.querySelectorAll(`div.${pagetext}`);
-                    //console.log(remove_page);
-                    //remove_page.remove();
-                    page--;
-                    counter = counter - 20;
-                    let button_name = "profile";
-                    listing_posts(button_name, username);      /////////                  
-                    
-                });
-                document.querySelector('#profile_posts').append(previous_button);
-            }
+            */
         })
 
     });
@@ -323,6 +401,12 @@ function open_post (){
     // Clear out comment field
     document.querySelector('#comment').value = '';
 
+    let button_name = "all_post";
+    let username = "random";
+    counter = 1;
+    page = 0;
+    listing_posts(button_name, username);
+    /*
     let pagetext = "page" + page;
     const start = counter;
     const end = start + list_number - 1
@@ -416,7 +500,7 @@ function open_post (){
         }
             
     });
-    
+    */
     return false;
 }
 
@@ -425,11 +509,14 @@ function open_post (){
 function listing_posts(button_name, username){
 
     console.log(button_name);
+  
     let pagetext = "page" + page;
     const start = counter;
     const end = start + list_number - 1
     counter = end + 1;
     let number_of_posts = 0;
+    console.log(start);
+    console.log(end);
 
     //if (button_name === "all_post"){}
 
@@ -467,9 +554,7 @@ function listing_posts(button_name, username){
             
             // Setting post container in posts
             const post_container = document.createElement('div');   
-            post_container.className = pagetext;
-            
-            
+            post_container.className = pagetext;            
 
             // Styling container
             post_container.style.cssText = 'border-style: solid;border-width: 1px;margin-left: 10px;margin-right: 10px;padding-left: 17px;margin-bottom: 10px;';
@@ -477,9 +562,16 @@ function listing_posts(button_name, username){
             // Appending header and content element into post container
             post_container.appendChild(one_post_header);
             post_container.appendChild(one_post_content);
-            document.querySelector('#uploaded_posts_view').append(post_container);
-        
-            
+
+            if (button_name === "all_post") {
+                document.querySelector('#uploaded_posts_view').append(post_container);
+            }
+            else if (button_name === "profile") {
+                document.querySelector('#profile_posts').append(post_container);
+            }
+            else if (button_name === "following") {
+                document.querySelector('#following_posts_view').append(post_container);
+            }               
             
         });
         
@@ -490,12 +582,31 @@ function listing_posts(button_name, username){
             next_button.innerHTML = button_value;
             next_button.addEventListener('click', function(){
                 //document.querySelectorAll(`div.${pagetext}`).remove();
-                document.querySelector('#uploaded_posts_view').innerHTML = "";
-                listing_posts(button_name);
+                if (button_name === "all_post") {                
+                    document.querySelector('#uploaded_posts_view').innerHTML = "";
+                }
+                else if (button_name === "profile") {                
+                    document.querySelector('#profile_posts').innerHTML = "";
+                }
+                else if (button_name === "following") {
+                    document.querySelector('#following_posts_view').innerHTML = "";
+                }
+                
+                //document.querySelector('#uploaded_posts_view').innerHTML = "";
+                listing_posts(button_name, username);
                 page++;
                 
             });
-            document.querySelector('#uploaded_posts_view').append(next_button);
+            if (button_name === "all_post") {                
+                document.querySelector('#uploaded_posts_view').append(next_button);
+            }
+            else if (button_name === "profile") {                
+                document.querySelector('#profile_posts').append(next_button);
+            }
+            else if (button_name === "following") {
+                document.querySelector('#following_posts_view').append(next_button);
+            }
+
         }
 
         if (page > 0) {
@@ -504,13 +615,31 @@ function listing_posts(button_name, username){
             previous_button.innerHTML = button_value;
             previous_button.addEventListener('click', function(){
                 //document.querySelectorAll(`div.${pagetext}`).remove();
-                document.querySelector('#uploaded_posts_view').innerHTML = "";
+                if (button_name === "all_post") {                
+                    document.querySelector('#uploaded_posts_view').innerHTML = "";
+                }
+                else if (button_name === "profile") {                
+                    document.querySelector('#profile_posts').innerHTML = "";
+                }
+                else if (button_name === "following") {
+                    document.querySelector('#following_posts_view').innerHTML = "";
+                }
+                //document.querySelector('#uploaded_posts_view').innerHTML = "";
                 page--;
                 counter = counter - 20;
-                listing_posts(button_name);
+                listing_posts(button_name, username);
                 
             });
-            document.querySelector('#uploaded_posts_view').append(previous_button);
+            if (button_name === "all_post") {                
+                document.querySelector('#uploaded_posts_view').append(previous_button);
+            }
+            else if (button_name === "profile") {                
+                document.querySelector('#profile_posts').append(previous_button);
+            }
+            else if (button_name === "following") {
+                document.querySelector('#following_posts_view').append(previous_button);
+            }
+            //document.querySelector('#uploaded_posts_view').append(previous_button);
         }
     });
 

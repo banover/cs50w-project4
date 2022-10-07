@@ -517,6 +517,7 @@ function listing_posts(button_name, username){
     let number_of_posts = 0;
     console.log(start);
     console.log(end);
+    console.log(username);
 
     //if (button_name === "all_post"){}
 
@@ -546,22 +547,173 @@ function listing_posts(button_name, username){
                 profile_page(post.username);
             });
 
-            // Setting content text with element in posts
-            let content = post.comment + "<br>" + post.timestamp + "<br>" + post.like;
-            const one_post_content = document.createElement('div');                        
-            one_post_content.innerHTML = content;
-            console.log(one_post_content);          
-            
             // Setting post container in posts
             const post_container = document.createElement('div');   
             post_container.className = pagetext;            
 
             // Styling container
             post_container.style.cssText = 'border-style: solid;border-width: 1px;margin-left: 10px;margin-right: 10px;padding-left: 17px;margin-bottom: 10px;';
-                        
-            // Appending header and content element into post container
+            
+            // Appending header into post_container
             post_container.appendChild(one_post_header);
-            post_container.appendChild(one_post_content);
+
+            // Making edit button
+            fetch('/get_login_username')
+            .then(response => response.json())
+            .then(name => {
+                console.log(name);
+
+                if (name.username === post.username){
+                    let button_value = "Edit";
+                    const edit_button = document.createElement('button');
+                    edit_button.innerHTML = button_value;
+
+                    edit_button.addEventListener('click', function(){
+
+                        document.querySelector('#composition_view').style.display = 'block';
+                        document.querySelector('#uploaded_posts_view').style.display = 'none';
+                        document.querySelector('#profile_page_view').style.display = 'none';
+                        document.querySelector('#following_posts_view').style.display = 'none';
+
+                        console.log(post.comment);
+                        document.querySelector('#comment').value = post.comment; 
+                        document.querySelector('#submit_post_button').style.display = "none";
+                        
+                        let save_button_value = "Save";
+                        const save_post_button = document.createElement('button');
+                        //save_post_button.setAttribute("type", "submit");
+                        save_post_button.innerHTML = save_button_value;
+
+                        //document.querySelector('#new_post_form').onsubmit = update_db(posts.posts.id);
+                        save_post_button.addEventListener('click', function(){
+                            let new_comment = document.querySelector('#comment').value;
+                            console.log(new_comment);
+                            document.querySelector('#submit_post_button').style.display = "block";
+                            save_post_button.style.display = "none";
+                            update_db(post.id, new_comment);  //그냥 form이 submit된게아니라 save버튼 누른 후 새로운 comment 정보가 전달될까?
+                        });
+                        //document.querySelector('#new_post_form').append(save_post_button);
+                        document.querySelector('#composition_view').append(save_post_button);
+                    });
+
+                    // Appending edit_button into post_container
+                    post_container.appendChild(edit_button);
+                }
+                //else {
+                //    document.querySelector('#submit_post_button').style.display = "block";
+                //}
+                
+            });
+            /*
+            let button_value = "Edit";
+            const edit_button = document.createElement('button');
+            edit_button.innerHTML = button_value;
+
+            edit_button.addEventListener('click', function(){
+
+                document.querySelector('#composition_view').style.display = 'block';
+                document.querySelector('#uploaded_posts_view').style.display = 'none';
+                document.querySelector('#profile_page_view').style.display = 'none';
+                document.querySelector('#following_posts_view').style.display = 'none';
+
+                console.log(post.comment);
+                document.querySelector('#comment').value = post.comment; 
+                document.querySelector('#submit_post_button').style.display = "none";
+                
+                let save_button_value = "Save";
+                const save_post_button = document.createElement('button');
+                //save_post_button.setAttribute("type", "submit");
+                save_post_button.innerHTML = save_button_value;
+
+                //document.querySelector('#new_post_form').onsubmit = update_db(posts.posts.id);
+                save_post_button.addEventListener('click', function(){
+                    let new_comment = document.querySelector('#comment').value;
+                    console.log(new_comment);
+                    update_db(post.id, new_comment);  //그냥 form이 submit된게아니라 save버튼 누른 후 새로운 comment 정보가 전달될까?
+                });
+                //document.querySelector('#new_post_form').append(save_post_button);
+                document.querySelector('#composition_view').append(save_post_button);
+            });
+            */
+
+            // Setting content text with element in posts
+            //let content = post.comment + "<br>" + post.timestamp + "<br>" + post.like;
+            //const one_post_content = document.createElement('div');                        
+            //one_post_content.innerHTML = content;
+            //console.log(one_post_content);
+
+            // 위의 content에서 like빼고 다시 appendchild해서 container한테
+            fetch('/get_login_username')
+            .then(response => response.json())
+            .then(name => {
+                if (name.username !== post.username){
+                    console.log(name.username);
+                    console.log(post.username);
+
+                    // Setting content text with element in posts
+                    let content = post.comment + "<br>" + post.timestamp;
+                    const one_post_content = document.createElement('div');                        
+                    one_post_content.innerHTML = content;
+                    //console.log(one_post_content);
+                    post_container.appendChild(one_post_content);
+
+                    let like = "like";
+                    const like_button = document.createElement('button');
+                    like_button.innerHTML = like;
+
+                    like_button.addEventListener('click', function(){
+
+                        fetch(`/change_likes/${post.username}/${post.id}`)
+                        .then(response => response.json())
+                        .then(like => {
+                            console.log(like);
+                        });
+                        
+                        const like_content = document.createElement('div');
+                        fetch(`get_post_data/${post.username}/${post.id}`)
+                        .then(response => response.json())
+                        .then(like => {
+                            like_content.innerHTML = like.like + "";
+                        })
+                        one_post_like_content.style.display = "none";
+                        like_content.append(like_button);
+                        post_container.appendChild(like_content);
+
+                    })
+
+                    let like_content = post.like;
+                    const one_post_like_content = document.createElement('div');                        
+                    one_post_like_content.innerHTML = like_content;
+                    one_post_like_content.append(like_button);
+
+                    // Appending one_post_content into post_container                        
+                    post_container.appendChild(one_post_content);
+                    post_container.appendChild(one_post_like_content);
+
+
+                    //const like_content = document.createElement('div');
+                    //fetch(`get_post_data/${post.username}`)
+                    //.then(response => response.json())
+                    //.then(like => {
+                    //    like_content.innerHTML = like.like + "";
+                    //})
+                    
+                    //like_content.append(like_button);
+                    //post_container.appendChild(like_content);
+                }
+                else {
+                    // innerhtml= ""로 안만들고 해도 덮어지겠지?
+                    let content = post.comment + "<br>" + post.timestamp + "<br>" + post.like;
+                    const one_post_content = document.createElement('div');                        
+                    one_post_content.innerHTML = content;
+
+                    // Appending one_post_content into post_container                        
+                    post_container.appendChild(one_post_content);
+                }
+            });
+                        
+            // Appending one_post_content into post_container                        
+            //post_container.appendChild(one_post_content);
 
             if (button_name === "all_post") {
                 document.querySelector('#uploaded_posts_view').append(post_container);
@@ -645,7 +797,7 @@ function listing_posts(button_name, username){
 
     
     
-
+    return false;
 }
 
 
@@ -666,9 +818,35 @@ function upload_db() {
       console.log(result);
     });
 
-    location.reload();
+    location.reload(); // 안해도 될듯? 체크하기
     //localStorage.clear(); 
     open_post();
     return false;    
 }
+
+function update_db(post_id, new_comment) {
+    //const new_comment = document.querySelector('#comment').value;
+    fetch(`/update/${post_id}`,{
+        method: 'PUT',
+        body: JSON.stringify({
+            comment : new_comment
+        })
+    })
+    .then(response => response)//.json())
+    .then(result => {
+        console.log(result);
+    });    
+
+    location.reload();
+    //document.querySelector('#uploaded_posts_view').innerHTML = '';
+    open_post();
+    return false;  
+
+}                 
+// 수정을 했을때 수정한 값을 바로 innerhtml값으로 넣어주고 변경한 값은 fetch로 전송하면 reload없이 바로 될듯, 다음에 posts나열될때는 저장된 db에서 데이터 들고오니까.. 
+// 일단, 코드정리한 후 다름 사람이 한 거 코드구경하러가자
+//  cs50w project 아쉬운점 specification을 좀 더 구체적으로 해줬더라면..
+
+                    
+
 

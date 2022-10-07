@@ -22,7 +22,68 @@ def index(request):
 
     else:
         return HttpResponseRedirect(reverse("login"))
+
+
+@login_required
+def get_post_data(request, username, post_id):
+    user_data = User.objects.filter(username=username)
+    user_id = user_data.first().id
+
+    post = Posts.objects.filter(username=user_id, id=post_id)
+    post_like = post.first().like
+    return JsonResponse({"like":post_like}, safe=False)
+
+
+
+@csrf_exempt
+@login_required
+def change_likes(request, username, post_id):    
+
+    user_data = User.objects.filter(username=username)
+    user_id = user_data.first().id
+
+    post = Posts.objects.filter(username=user_id, id=post_id)
+    post = post.first()
+
+    new_like_number = post.like + 1
+    post.like = new_like_number
+    post.save()
+    
+    return JsonResponse({"message": "update like successfully!"})
+
+
+
+
+
+@login_required
+def get_login_username(request):
+
+    username = request.user
+    login_username = User.objects.filter(username=username).first().username
+
+    return JsonResponse({"username":login_username}, safe=False)
+
+
+@csrf_exempt
+@login_required
+def update(request, post_id):
+
+    loggedin_username = request.user
+
+    if request.method == "PUT":
+
+        username = User.objects.filter(username=loggedin_username)
+        username = username.first().id
+        post = Posts.objects.filter(username=username, pk=post_id).first()
+        data = json.loads(request.body)
+        #new_comment = data.get("comment")
+        new_comment = data["comment"]
+        post.comment = new_comment
+        post.save()
         
+        #return JsonResponse({"message": "Update comment sent successfully."}, status=201)
+        return HttpResponse(status=204)
+
 
 @login_required
 def following_load_post(request):

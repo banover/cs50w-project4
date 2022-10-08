@@ -662,35 +662,172 @@ function listing_posts(button_name, username){
                     like_button.innerHTML = like;
 
                     like_button.addEventListener('click', function(){
+                        // unlike 버튼 활성화 필요
 
+                        
+                    
                         fetch(`/change_likes/${post.username}/${post.id}`)
                         .then(response => response.json())
                         .then(like => {
                             console.log(like);
-                        });
+                            //syn = true;
+                            const like_content = document.createElement('div');
+                                                 
+                            fetch(`get_post_data/${post.username}/${post.id}`)
+                            .then(response => response.json())
+                            .then(posts => {
+                                //forEach써야... posts.forEach(function(post))
+                                like_content.innerHTML = posts.like + "";
+                                console.log(posts);
+                                console.log(posts.like);
+
+                                one_post_like_content.innerHTML = "";
+                                like_content.appendChild(unlike_button);
+                                console.log(like_content);
+                                one_post_like_content.appendChild(like_content);
+                                //like_button
+                            });
+                        });      
+
+                        //setTimeout(function(){}, 3000);
+                        //let like_content_text = post.like;
+                        //const one_post_like_content = document.createElement('div');                        
+                        //one_post_like_content.innerHTML = like_content_text;
+                        //one_post_like_content.append(like_button);
+
                         
-                        const like_content = document.createElement('div');
-                        fetch(`get_post_data/${post.username}/${post.id}`)
-                        .then(response => response.json())
-                        .then(like => {
-                            like_content.innerHTML = like.like + "";
-                        })
-                        one_post_like_content.style.display = "none";
-                        like_content.append(like_button);
-                        post_container.appendChild(like_content);
+                        // 이 아래 내용이 필요한가?? 좀 더 생각 숫자재업로드는 필요함
+                        
+                        // ***********************************************
+                        //const like_content = document.createElement('div');
+                                                 
+                        //fetch(`get_post_data/${post.username}/${post.id}`)
+                        //.then(response => response.json())
+                        //.then(like => {
+                        //    like_content.innerHTML = like.like + "";
+                        //    console.log(like);
+                        //    console.log(like.like);
+
+
+                        //    one_post_like_content.innerHTML = "";
+                        //    like_content.appendChild(like_button);
+                        //    console.log(like_content);
+                        //    one_post_like_content.appendChild(like_content);
+                        //})
+
+                        //*************************************************** */
+                        
+                        //one_post_like_content.style.display = "none";
+
+                                                
+                        // one_post_like_content 의 innerhtml을 ""로 비운 후에 새로운 내용 집어넣으면 됨                    
+                        //post_container.innerHTML = "";  
+
+                        //one_post_like_content.innerHTML = "";*
+
+                        //post_container.remove(one_post_like_content);
+                        
+                        //like_content.appendChild(like_button);**
+                        //one_post_like_content.appendChild(like_content);***
+
+                        //post_container.appendChild(like_content);
 
                     })
+                    // Putting like button into container
+                    //like_content.append(like_button);
+                    //post_container.appendChild(like_content);
 
-                    let like_content = post.like;
+
+                    let like_content_text = post.like;
                     const one_post_like_content = document.createElement('div');                        
-                    one_post_like_content.innerHTML = like_content;
-                    one_post_like_content.append(like_button);
+                    one_post_like_content.innerHTML = like_content_text;
+                    
+                    fetch(`get_post_data/${post.username}/${post.id}`)
+                    .then(response => response.json())
+                    .then(post => {
+                        console.log(post);
+                        console.log(post.like_user); // 리스트 형태로 옮
+                        
+                        let post_like_user = post.like_user;
+                        let found_like_user =false;
+                        console.log(post_like_user);
+                        
+                        for (let i = 0; i < post_like_user.length; i++) {
+                            if (name.username === post_like_user[i]){
+                                one_post_like_content.append(unlike_button);
+                                found_like_user = true;
+                                break;
+                            }
+                        }
+
+                        if (found_like_user === false) {
+                            one_post_like_content.append(like_button);
+                        }
+                        
+                    });
+                    
 
                     // Appending one_post_content into post_container                        
-                    post_container.appendChild(one_post_content);
+                    //post_container.appendChild(one_post_content); 이미 등록한듯?-658
                     post_container.appendChild(one_post_like_content);
 
 
+
+                    // 잠시 대기..*****************
+
+                    // Making unlike button -- 기존 like content display=none한 상황에서 like number랑 unlike button을 대신 집어넣기
+                    let unlike_button_text_value = "Unlike";
+                    const unlike_button = document.createElement('button');
+                    unlike_button.innerHTML = unlike_button_text_value;
+
+                    unlike_button.addEventListener('click', function(){
+                        fetch(`/change_likes/${post.username}/${post.id}`,{
+                            method: 'PUT'//,
+                            //body: JSON.stringify({
+
+                            //})                 
+                        })
+                        .then(response => response.json())
+                        .then(unlike => {
+                            console.log(unlike);
+
+                            const like_content = document.createElement('div');
+                            fetch(`get_post_data/${post.username}/${post.id}`)
+                            .then(response => response.json())
+                            .then(like => {
+                                like_content.innerHTML = like.like + "";
+
+                                one_post_like_content.innerHTML = "";
+                                like_content.appendChild(like_button);
+                                one_post_like_content.appendChild(like_content);
+
+
+                            })
+                        });
+
+                        // 이 아래 내용이 필요한가?? 좀 더 생각 숫자재업로드는 필요함
+                        //*********************************************** 
+                        //const like_content = document.createElement('div');
+                        //fetch(`get_post_data/${post.username}/${post.id}`)
+                        //.then(response => response.json())
+                        //.then(like => {
+                        //    like_content.innerHTML = like.like + "";
+                        //})
+                        ////one_post_like_content.style.display = "none";                       
+
+                        //one_post_like_content.innerHTML = "";
+                        ////post_container.remove(like_content);
+                        ////post_container.remove(one_post_like_content);
+                        //like_content.appendChild(like_button);
+                        //post_container.appendChild(like_content);
+                        //*********************************************** 
+
+                        //like버튼을 빼고 unlike버튼 삽입 후 container에 like content 삽입
+                        //like_content.append(unlike_button);
+                        //post_container.appendChild(like_content);
+                    })
+
+                    
                     //const like_content = document.createElement('div');
                     //fetch(`get_post_data/${post.username}`)
                     //.then(response => response.json())
@@ -844,6 +981,7 @@ function update_db(post_id, new_comment) {
 
 }                 
 // 수정을 했을때 수정한 값을 바로 innerhtml값으로 넣어주고 변경한 값은 fetch로 전송하면 reload없이 바로 될듯, 다음에 posts나열될때는 저장된 db에서 데이터 들고오니까.. 
+// unlike도 해야함
 // 일단, 코드정리한 후 다름 사람이 한 거 코드구경하러가자
 //  cs50w project 아쉬운점 specification을 좀 더 구체적으로 해줬더라면..
 

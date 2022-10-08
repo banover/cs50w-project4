@@ -12,6 +12,9 @@ from .models import User, Posts, Follow_connection
 
 # @csrf_exempt, @login_required 붙일지 고민해보셈(header에 import하고 쓰셈 - from django.contrib.auth.decorators import login_required and from django.views.decorators.csrf import csrf_exempt)
 
+# 전역변수 설정
+
+
 def index(request):
    # if request.method == "GET":
    #     return render(request, "network/index.html")
@@ -26,12 +29,21 @@ def index(request):
 
 @login_required
 def get_post_data(request, username, post_id):
+    
     user_data = User.objects.filter(username=username)
     user_id = user_data.first().id
 
-    post = Posts.objects.filter(username=user_id, id=post_id)
-    post_like = post.first().like
-    return JsonResponse({"like":post_like}, safe=False)
+    posts = Posts.objects.filter(username=user_id, id=post_id)
+    posts = posts.first()
+    #post_like = posts.first().like
+    
+
+    #return JsonResponse({"like":post_like}, safe=False)
+    return JsonResponse(posts.serialize(), safe=False)
+    return JsonResponse([post.serialize() for post in posts], safe=False)
+        
+
+
 
 
 
@@ -39,17 +51,44 @@ def get_post_data(request, username, post_id):
 @login_required
 def change_likes(request, username, post_id):    
 
+    # Earning user's id whoes name is username who made a post
     user_data = User.objects.filter(username=username)
     user_id = user_data.first().id
 
+    # Setting post to change
     post = Posts.objects.filter(username=user_id, id=post_id)
     post = post.first()
 
-    new_like_number = post.like + 1
-    post.like = new_like_number
-    post.save()
-    
-    return JsonResponse({"message": "update like successfully!"})
+    if request.method == "PUT":
+
+        logedin_user = request.user
+        logedin_user_id = User.objects.filter(username=logedin_user)
+        logedin_user_id = logedin_user_id.first().id
+        post.like_user.remove(logedin_user_id)
+
+
+        new_like_number = post.like - 1
+        post.like = new_like_number
+        post.save()        
+
+        return JsonResponse({"message": "update reducing like_number and remove like_user successfully!"})
+ 
+    else:
+
+        # Upload like_user
+        logedin_user = request.user
+        logedin_user_id = User.objects.filter(username=logedin_user)
+        logedin_user_id = logedin_user_id.first().id
+        post.like_user.add(logedin_user_id)
+        #follower_data.first().followee.add(id_username)
+
+        # Upload like number
+        new_like_number = post.like + 1
+        post.like = new_like_number
+        post.save()        
+        
+        # Sending message in jsonresponse
+        return JsonResponse({"message": "update like_number and like_user successfully!"})
 
 
 

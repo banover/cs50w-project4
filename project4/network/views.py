@@ -15,14 +15,14 @@ from .models import User, Posts, Follow_connection
 # 전역변수 설정
 
 
-def index(request):
-   # if request.method == "GET":
-   #     return render(request, "network/index.html")
+def index(request):  
 
+    # When logged in, render index.html
     if request.user.is_authenticated:
         if request.method == "GET":
             return render(request, "network/index.html")
 
+    # When not logged in, reverse login.html
     else:
         return HttpResponseRedirect(reverse("login"))
 
@@ -30,22 +30,18 @@ def index(request):
 @login_required
 def get_post_data(request, username, post_id):
     
+    # Finding user's id
     user_data = User.objects.filter(username=username)
     user_id = user_data.first().id
 
+    # Finding a post which has certain username, post_id
     posts = Posts.objects.filter(username=user_id, id=post_id)
     posts = posts.first()
     #post_like = posts.first().like
-    
-
-    #return JsonResponse({"like":post_like}, safe=False)
+  
+    # Return post data in serialize form    
     return JsonResponse(posts.serialize(), safe=False)
-    return JsonResponse([post.serialize() for post in posts], safe=False)
-        
-
-
-
-
+            
 
 @csrf_exempt
 @login_required
@@ -59,18 +55,21 @@ def change_likes(request, username, post_id):
     post = Posts.objects.filter(username=user_id, id=post_id)
     post = post.first()
 
+    # When request method is put
     if request.method == "PUT":
 
+        # Remove logged in user in like_user
         logedin_user = request.user
         logedin_user_id = User.objects.filter(username=logedin_user)
         logedin_user_id = logedin_user_id.first().id
         post.like_user.remove(logedin_user_id)
 
-
+        # Changing like decreased 1 
         new_like_number = post.like - 1
         post.like = new_like_number
         post.save()        
 
+        # Return jsonresponse message if above process success
         return JsonResponse({"message": "update reducing like_number and remove like_user successfully!"})
  
     else:
@@ -91,15 +90,14 @@ def change_likes(request, username, post_id):
         return JsonResponse({"message": "update like_number and like_user successfully!"})
 
 
-
-
-
 @login_required
 def get_login_username(request):
 
+    # Getting logged in username
     username = request.user
     login_username = User.objects.filter(username=username).first().username
 
+    # Return json format which has a username
     return JsonResponse({"username":login_username}, safe=False)
 
 
@@ -107,15 +105,22 @@ def get_login_username(request):
 @login_required
 def update(request, post_id):
 
+    # Setting logged in username
     loggedin_username = request.user
 
+    # When request method is put
     if request.method == "PUT":
 
+        # Getting a post which have to be changed
         username = User.objects.filter(username=loggedin_username)
         username = username.first().id
         post = Posts.objects.filter(username=username, pk=post_id).first()
+
+        # Setting sended data 
         data = json.loads(request.body)
         #new_comment = data.get("comment")
+
+        # Changing a post'comment inf
         new_comment = data["comment"]
         post.comment = new_comment
         post.save()
@@ -157,7 +162,7 @@ def following_load_post(request):
 @csrf_exempt
 def follow_connection(request, username):
     
-    # 위 username은 링크 이름 클릭한 대상임
+    #  username is cliked link name
     # Setting proper valriables for follower and followee upload and for remove follower + ee
     loggedin_username = request.user
     id_username = User.objects.filter(username=loggedin_username)
@@ -249,20 +254,21 @@ def load_post(request, button_name, username):
     start = int(request.GET.get("start") or 0)
     end = int(request.GET.get("end") or (start + 9))
 
+    # When the button name is all_post
     if button_name == "all_post":
 
         # Loading all post datas
-        posts = Posts.objects.all()
-        #posts = posts.order_by("-datetime").all()  <이 밑에부터 수정>
-        posts = posts.order_by("-datetime")[start - 1:end]   #
+        posts = Posts.objects.all()         
+        posts = posts.order_by("-datetime")[start - 1:end]   
         posts_number = len(Posts.objects.all())
         a = [post.serialize() for post in posts]
         b = len(a)
+
         # Return json response per post
-        #return JsonResponse([post.serialize() for post in posts], safe=False)
         return JsonResponse({"posts":a,
                             "posts_number":b}, safe=False)
 
+    # When the button name is profile
     elif button_name =="profile":
 
         # Setting variables for loading posts
@@ -270,17 +276,16 @@ def load_post(request, button_name, username):
         id_name = name.first().id
 
         # Loading posts from db
-        posts = Posts.objects.filter(username=id_name)
-        #posts = posts.order_by("-datetime").all()    ****여기서부터 수정
+        posts = Posts.objects.filter(username=id_name)       
         posts = posts.order_by("-datetime")[start - 1:end]
         a = [post.serialize() for post in posts]
         b = len(a)
 
-        # Retrun json response per post
-        #return JsonResponse([post.serialize() for post in posts], safe=False)
+        # Retrun json response per post        
         return JsonResponse({"posts":a,
                             "posts_number":b}, safe=False)
     
+    # When the button name is following
     elif button_name == "following":
 
         # Setting loggedin user id
@@ -295,15 +300,11 @@ def load_post(request, button_name, username):
         # Filtering out followers' posts
         follower_posts = Posts.objects.filter(username__in=loginuser_follower_list)
         
-        # Ordering posts in reverse chronological order
-        #follower_posts = follower_posts.order_by("-datetime").all()
+        # Ordering posts in reverse chronological order        
         follower_posts = follower_posts.order_by("-datetime")[start - 1:end]
         a = [post.serialize() for post in follower_posts]
         b = len(a)
-
-        # Return follower's posts in serialized
-        #return JsonResponse([post.serialize() for post in follower_posts], safe=False)
-        
+                
         # Retrun json response per post        
         return JsonResponse({"posts":a,
                             "posts_number":b}, safe=False)
@@ -311,8 +312,6 @@ def load_post(request, button_name, username):
     else:
         pass
         
-
-
 
 # Loading profile posts
 def profile_load_post(request, username):
@@ -332,6 +331,7 @@ def profile_load_post(request, username):
     #return JsonResponse([post.serialize() for post in posts], safe=False)
     return JsonResponse({"posts":a,
                          "posts_number":b}, safe=False)
+
 
 def login_view(request):
     if request.method == "POST":

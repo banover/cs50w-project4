@@ -1,16 +1,14 @@
 let counter = 1;
 const list_number = 10;
-let page = 0
-//let pagetext = "page" + page;
-
+let page = 0;
 
 document.addEventListener('DOMContentLoaded', function(){
 
     // Setting display to none 이부분의 innerhtml을 "" 놨으면 중복적용이 제거될텐데.. profile_page_view는 밑에 별도의 div tag들이 있어서 그것까지 해야함 애초에 설계가 별로
-    //document.querySelector('#composition_view').style.display = 'none';
-    //document.querySelector('#uploaded_posts_view').style.display = 'none';
-    //document.querySelector('#profile_page_view').style.display = 'none';
-    //document.querySelector('#following_posts_view').style.display = 'none';
+    //document.querySelector('#composition_view').innerHTML = '';
+    //document.querySelector('#uploaded_posts_view').innerHTML = '';
+    //document.querySelector('#profile_page_view').innerHTML = '';
+    //document.querySelector('#following_posts_view').innerHTML = '';
 
     // Showing the posts view, when All posts button is onclick
     document.querySelector('#posts_button').addEventListener('click', function(){      
@@ -48,99 +46,10 @@ function following_post() {
     let username = "following_random";
     counter = 1;
     page = 0;
+
+    // Listing following posts
     listing_posts(button_name, username);
-
-    /*
-    let pagetext = "page" + page;
-    const start = counter;
-    const end = start + list_number - 1
-    counter = end + 1;
-    let number_of_posts = 0;
-    fetch(`/load_post/${button_name}/${username}?start=${start}&end=${end}`)
-    .then(response => response.json())
-    .then(posts => {
-        console.log(posts);
-        number_of_posts = posts.posts_number;
-        console.log(number_of_posts);
-
-
-        posts.posts.forEach(function(post){
-
-            // Making container which is contain header and content
-            const post_container = document.createElement('div');
-            post_container.className = pagetext;
-            post_container.style.cssText = 'border-style: solid;border-width: 1px;margin-left: 10px;margin-right: 10px;padding-left: 17px;margin-bottom: 10px;';
-
-            // Making header in a post
-            let header = post.username;
-            const post_header = document.createElement('div')
-            post_header.innerHTML = header;
-            console.log(post_header);
-
-            post_header.addEventListener('click', function(){
-                console.log("post_header is onclick!")
-                profile_page(header);
-            });
-
-            // Making content in a post
-            let content = post.comment + "<br>" + post.timestamp + "<br>" + post.like;
-            const post_content = document.createElement('div');                        
-            post_content.innerHTML = content;
-            console.log(post_content);
-            
-            // Cotaining header and content into container
-            post_container.append(post_header);
-            post_container.append(post_content);
-            //appendChild vs append
-
-            // Appending container html following_posts_view div tag
-            document.querySelector('#following_posts_view').append(post_container);
-
-        })
-
-        if (parseInt(number_of_posts, 10) === 10) {
-            let button_value = "Next";
-            const next_button = document.createElement('button');
-            next_button.innerHTML = button_value;
-            next_button.addEventListener('click', function(){
-                //document.querySelector(`.${pagetext}`).remove();
-                document.querySelector('#following_posts_view').innerHTML = "";
-                page++;
-                let button_name = "following";
-                let username = "random";
-                const start = counter;
-                const end = start + list_number - 1
-                console.log(start);
-                console.log(end);
-                listing_posts(button_name, username);
-                
-            });
-            document.querySelector('#following_posts_view').append(next_button);
-        }
-
-        if (page > 0) {
-            let button_value = "Previous";
-            const previous_button = document.createElement('button');
-            previous_button.innerHTML = button_value;
-            previous_button.addEventListener('click', function(){
-                document.querySelector('#following_posts_view').innerHTML = "";
-                //let remove_page = document.querySelectorAll(`div.${pagetext}`);
-                //console.log(remove_page);
-                //remove_page.remove();
-                page--;
-                counter = counter - 20;
-                let button_name = "following";
-                let username = "random";
-                const start = counter;
-                const end = start + list_number - 1
-                listing_posts(button_name, username);
-                
-            });
-            document.querySelector('#following_posts_view').append(previous_button);
-        }
-
-    });
-    */
+    
     return false;
 }
 
@@ -150,22 +59,18 @@ function profile_page(username) {
     console.log(counter);
     console.log(page);
 
-
     // Setting profile_page_view block
     document.querySelector('#composition_view').style.display = 'none';
     document.querySelector('#uploaded_posts_view').style.display = 'none';
     document.querySelector('#profile_page_view').style.display = 'block';
     document.querySelector('#following_posts_view').style.display = 'none';
 
+    // Preventing duplication of post from double clike
     document.querySelector('#follow_button').innerHTML = '';
     document.querySelector('#unfollow_button').innerHTML = '';
     document.querySelector('#number_of_follower').innerHTML = '';
     document.querySelector('#number_of_followee').innerHTML = '';
     document.querySelector('#profile_posts').innerHTML = '';
-
-    // Show the profiel page name
-    //let title = '<h1>Profile</h1>'
-    //document.querySelector('#profile_page_view').innerHTML = title;
 
     // Requesting server for follow datas and create div and lists all
     fetch(`/get_follower/${username}`, {
@@ -194,7 +99,8 @@ function profile_page(username) {
             console.log("follow_button is cliked!");
             document.querySelector('#follow_button').style.display = 'none';
             document.querySelector('#unfollow_button').style.display = 'block';
-            //fetch('') 활용해서 models 안에 Follow_connection에 upload해
+            
+            // Updating Follow_connection models data using post fetch to add follower
             fetch(`/follow_connection/${username}`, {
                 method: 'POST',
                 body: JSON.stringify({
@@ -207,6 +113,7 @@ function profile_page(username) {
             });
         });
 
+        // Appending follow button 
         document.querySelector('#follow_button').append(follow_button);
         
         // Making unfollow button
@@ -220,6 +127,7 @@ function profile_page(username) {
             document.querySelector('#follow_button').style.display = 'block';
             document.querySelector('#unfollow_button').style.display = 'none';
 
+            // Updating Follow_connection models data using post put to remove follower
             fetch(`/follow_connection/${username}`, {
                 method: 'PUT',
                 body: JSON.stringify({
@@ -232,36 +140,40 @@ function profile_page(username) {
             });
         });        
         
+        // Appending unfollow button
         document.querySelector('#unfollow_button').append(unfollow_button);
         
         // Finding number of follower and append it into follower_number_view tag
         const follower_number = "The number of follower: " + followers[0].follower.length;            
         const follower_number_view = document.createElement('div');
         follower_number_view.innerHTML = follower_number;
-
         document.querySelector('#number_of_follower').append(follower_number_view);
         
         // Finding number of followee and append it into followee_number_view tag
         const followee_number = "The number of followee: " + followers[0].followee.length;
         const followee_number_view = document.createElement('div');
         followee_number_view.innerHTML = followee_number;
-
-        document.querySelector('#number_of_followee').append(followee_number_view);
-        
-        
+        document.querySelector('#number_of_followee').append(followee_number_view);               
 
         // Checking username with model_username then show button properly
         if (username === loggedin_username){
 
             document.querySelector('#follow_button').style.display = 'none';
             document.querySelector('#unfollow_button').style.display = 'none';
+
+        // When two username above is different
         } else {
 
+            // Setting loginuser's all follower and making check varialble for finding certain name follower
             let loginuser_follower = followers[0].follower;
             let found_follower = false;
             console.log(loginuser_follower)
             console.log(username)
-            for (let i = 0; i < loginuser_follower.length; i++){                
+
+            // Finding username which is same with follower user
+            for (let i = 0; i < loginuser_follower.length; i++){       
+                
+                // There is same username then show unfollow button
                 if (username === loginuser_follower[i]){
                     document.querySelector('#follow_button').style.display = 'none';
                     document.querySelector('#unfollow_button').style.display = 'block'; 
@@ -269,12 +181,12 @@ function profile_page(username) {
                     break;
                 }
             }
+            // There is no same username then show follow button
             if (found_follower === false) {
                 document.querySelector('#follow_button').style.display = 'block';
                 document.querySelector('#unfollow_button').style.display = 'none';
             }                       
         }
-
 
         // Per each follower, listing username's(follower's) posts
         followers.forEach(function(follower){
@@ -293,97 +205,18 @@ function profile_page(username) {
             //    const followee_name = document.createElement('div');
             //    followee_name.innerHTML = follower.followee[i] + "<br>";
             //    document.querySelector('#followee').append(followee_name);
-           // }            
+           // }
 
-           // Requesting profile_load_post/<str:username> path to get username's posts
-            //fetch(`/profile_load_post/${follower.username}`)
-
+            // Setting button's name and profile host name
             let button_name = "profile";
             let name = username;
             counter = 1;
             page = 0;
-            listing_posts(button_name, name);
-            /*
-            counter = 1;
-            page = 0;
-            let pagetext = "page" + page;
-            const start = counter;
-            const end = start + list_number - 1
-            counter = end + 1;
-            console.log(counter);
-            let number_of_posts = 0;  
 
-            //fetch(`/profile_load_post/${username}?start=${start}&end=${end}`)
-            fetch(`/load_post/profile/${username}?start=${start}&end=${end}`)
-            .then(response => response.json())  //위에 username을 follower.username도 써도됨
-            .then(posts => {
-                console.log(posts);
-                console.log(posts.posts_number);
-                console.log(start);
-                console.log(end);
-
-                number_of_posts = posts.posts_number;
-                console.log(posts.posts_number);
-                // Making a post content inside a container element 
-                posts.posts.forEach(function(post){ //foreignkey 설정되어있는 field활용할때 그 original model의 id를 활용해야함
-                    let content = post.username + "<br>" + post.comment + "<br>" + post.timestamp + "<br>" + post.like;
-                    const one_post = document.createElement('div');
-                    one_post.className = pagetext;
-                    console.log(pagetext);
-                    //const hr = document.createElement('hr');
-                    one_post.innerHTML = content;
-                    one_post.style.cssText = 'border-style: solid;border-width: 1px;margin-left: 10px;margin-right: 10px;padding-left: 17px;margin-bottom: 10px;';
-                    
-                    document.querySelector('#profile_posts').append(one_post);                    
-                    
-                })
-
-                //console.log(number_of_posts);
-                if (parseInt(number_of_posts, 10) === 10) {
-                    let button_value = "Next";
-                    const next_button = document.createElement('button');
-                    next_button.innerHTML = button_value;
-                    next_button.addEventListener('click', function(){
-                        //document.querySelector(`.${pagetext}`).remove();
-                        document.querySelector('#profile_posts').innerHTML = "";
-                        page++;
-                        let button_name = "profile";                        
-                        const start = counter;
-                        const end = start + list_number - 1
-                        //counter = end + 1;
-                        console.log(start);
-                        console.log(end);
-                        console.log(username);
-                        listing_posts(button_name, username); ///////////
-
-                    });
-                    document.querySelector('#profile_posts').append(next_button);
-                }
-        
-                if (page > 0) {
-                    let button_value = "Previous";
-                    const previous_button = document.createElement('button');
-                    previous_button.innerHTML = button_value;
-                    previous_button.addEventListener('click', function(){
-                        document.querySelector('#profile_posts').innerHTML = "";
-                        //let remove_page = document.querySelectorAll(`div.${pagetext}`);
-                        //console.log(remove_page);
-                        //remove_page.remove();
-                        page--;
-                        counter = counter - 20;
-                        let button_name = "profile";
-                        listing_posts(button_name, username);      /////////                  
-                        
-                    });
-                    document.querySelector('#profile_posts').append(previous_button);
-                }                
-
-            });
-            */
+            // Listing profile posts
+            listing_posts(button_name, name);            
         })
-
     });
-
     
     return false
 }
@@ -401,115 +234,27 @@ function open_post (){
     // Clear out comment field
     document.querySelector('#comment').value = '';
 
+    // Setting button name, username(not nessasary in open post)
     let button_name = "all_post";
+    
+    // username here is not nessasary
     let username = "random";
     counter = 1;
     page = 0;
+
+    // Listing all posts
     listing_posts(button_name, username);
-    /*
-    let pagetext = "page" + page;
-    const start = counter;
-    const end = start + list_number - 1
-    counter = end + 1;
-    let number_of_posts = 0;    
-
-    //Showing posts
-    fetch(`/load_post/all_post/random?start=${start}&end=${end}`)
-    //fetch(`/posts?start=${start}&end=${end}`)
-    .then(response => response.json())
-    .then(posts => {
-        console.log(posts);
-        console.log(posts.posts);
-        console.log(posts.posts_number);
-        number_of_posts = posts.posts_number;
-
-        posts.posts.forEach(function(post){
-
-            // Setting header text with element in posts
-            let header = post.username + "<br>";
-            const one_post_header = document.createElement('a');            
-            one_post_header.innerHTML = header;
-            console.log(one_post_header);
-
-            // When one_post_header onclick, profile page will be viewd 
-            one_post_header.addEventListener('click', function(){
-                console.log("a post header link clikecd!");
-                console.log(post.username);
-                profile_page(post.username);
-                //let button_name = "profile";
-                //listing_posts(button_name)
-            });
-
-            // Setting content text with element in posts
-            let content = post.comment + "<br>" + post.timestamp + "<br>" + post.like;
-            const one_post_content = document.createElement('div');                        
-            one_post_content.innerHTML = content;
-            console.log(one_post_content);          
-            
-            // Setting post container in posts
-            const post_container = document.createElement('div');   
-            post_container.className = pagetext;
-            console.log(pagetext);
-
-            // Styling container
-            post_container.style.cssText = 'border-style: solid;border-width: 1px;margin-left: 10px;margin-right: 10px;padding-left: 17px;margin-bottom: 10px;';
-            
-            // Appending header and content element into post container
-            post_container.appendChild(one_post_header);
-            post_container.appendChild(one_post_content);
-            document.querySelector('#uploaded_posts_view').append(post_container);
-        
-        })
-
-        if (parseInt(number_of_posts, 10) === 10) {
-            let button_value = "Next";
-            const next_button = document.createElement('button');
-            next_button.innerHTML = button_value;
-            next_button.addEventListener('click', function(){
-                //document.querySelector(`.${pagetext}`).remove();
-                document.querySelector('#uploaded_posts_view').innerHTML = "";
-                page++;
-                let button_name = "all_post";
-                let username = "random";
-                listing_posts(button_name, username);
-                
-                
-                
-            });
-            document.querySelector('#uploaded_posts_view').append(next_button);
-        }
-
-        if (page > 0) {
-            let button_value = "Previous";
-            const previous_button = document.createElement('button');
-            previous_button.innerHTML = button_value;
-            previous_button.addEventListener('click', function(){
-                document.querySelector('#uploaded_posts_view').innerHTML = "";
-                //let remove_page = document.querySelectorAll(`div.${pagetext}`);
-                //console.log(remove_page);
-                //remove_page.remove();
-                page--;
-                counter = counter - 20;
-                let button_name = "all_post";
-                let username = "random";
-                listing_posts(button_name, username);
-                
-                
-            });
-            document.querySelector('#uploaded_posts_view').append(previous_button);
-        }
-            
-    });
-    */
+    
     return false;
 }
 
 
-
+// Listing posts in conditon which has three button and specific usrname
 function listing_posts(button_name, username){
 
     console.log(button_name);
   
+    // Setting for pagination variables
     let pagetext = "page" + page;
     const start = counter;
     const end = start + list_number - 1
@@ -518,12 +263,9 @@ function listing_posts(button_name, username){
     console.log(start);
     console.log(end);
     console.log(username);
-
-    //if (button_name === "all_post"){}
-
     
-    fetch(`/load_post/${button_name}/${username}?start=${start}&end=${end}`) 
-    //fetch(`/posts?start=${start}&end=${end}`)
+    // Requesting only 10 posts start with start.variable and end with end.varialble
+    fetch(`/load_post/${button_name}/${username}?start=${start}&end=${end}`)    
     .then(response => response.json())
     .then(posts => {
 
@@ -532,6 +274,7 @@ function listing_posts(button_name, username){
         console.log(posts.posts_number);
         number_of_posts = posts.posts_number;
 
+        // Per post in 10 posts, making post 
         posts.posts.forEach(function(post){
 
             // Setting header text with element in posts
@@ -558,94 +301,69 @@ function listing_posts(button_name, username){
             post_container.appendChild(one_post_header);
 
             // Making edit button
+            // Requesting logged in username using fetch
             fetch('/get_login_username')
             .then(response => response.json())
             .then(name => {
                 console.log(name);
 
+                // When logged in username is equel to post.username
                 if (name.username === post.username){
+                    // Making Edit button
                     let button_value = "Edit";
                     const edit_button = document.createElement('button');
                     edit_button.innerHTML = button_value;
 
+                    // When edit button is onclick
                     edit_button.addEventListener('click', function(){
 
+                        // Setting composition_view block, else all none
                         document.querySelector('#composition_view').style.display = 'block';
                         document.querySelector('#uploaded_posts_view').style.display = 'none';
                         document.querySelector('#profile_page_view').style.display = 'none';
                         document.querySelector('#following_posts_view').style.display = 'none';
 
                         console.log(post.comment);
+                        // Moving old comment in comment textarea and remove submit button 
                         document.querySelector('#comment').value = post.comment; 
                         document.querySelector('#submit_post_button').style.display = "none";
                         
+                        // Making save button
                         let save_button_value = "Save";
                         const save_post_button = document.createElement('button');
                         //save_post_button.setAttribute("type", "submit");
                         save_post_button.innerHTML = save_button_value;
 
-                        //document.querySelector('#new_post_form').onsubmit = update_db(posts.posts.id);
+                        // When save button is onclick
                         save_post_button.addEventListener('click', function(){
+                            
+                            // Saving edited comment value  
                             let new_comment = document.querySelector('#comment').value;
                             console.log(new_comment);
+
+                            // Showing submit button once again to back to original state and remove save button
                             document.querySelector('#submit_post_button').style.display = "block";
                             save_post_button.style.display = "none";
-                            update_db(post.id, new_comment);  //그냥 form이 submit된게아니라 save버튼 누른 후 새로운 comment 정보가 전달될까?
+
+                            // Updating edited comment to original comment
+                            update_db(post.id, new_comment);
                         });
-                        //document.querySelector('#new_post_form').append(save_post_button);
+                        
+                        // Appending save button into composition_view replacing submit button
                         document.querySelector('#composition_view').append(save_post_button);
                     });
 
                     // Appending edit_button into post_container
                     post_container.appendChild(edit_button);
                 }
-                //else {
-                //    document.querySelector('#submit_post_button').style.display = "block";
-                //}
-                
             });
-            /*
-            let button_value = "Edit";
-            const edit_button = document.createElement('button');
-            edit_button.innerHTML = button_value;
 
-            edit_button.addEventListener('click', function(){
-
-                document.querySelector('#composition_view').style.display = 'block';
-                document.querySelector('#uploaded_posts_view').style.display = 'none';
-                document.querySelector('#profile_page_view').style.display = 'none';
-                document.querySelector('#following_posts_view').style.display = 'none';
-
-                console.log(post.comment);
-                document.querySelector('#comment').value = post.comment; 
-                document.querySelector('#submit_post_button').style.display = "none";
-                
-                let save_button_value = "Save";
-                const save_post_button = document.createElement('button');
-                //save_post_button.setAttribute("type", "submit");
-                save_post_button.innerHTML = save_button_value;
-
-                //document.querySelector('#new_post_form').onsubmit = update_db(posts.posts.id);
-                save_post_button.addEventListener('click', function(){
-                    let new_comment = document.querySelector('#comment').value;
-                    console.log(new_comment);
-                    update_db(post.id, new_comment);  //그냥 form이 submit된게아니라 save버튼 누른 후 새로운 comment 정보가 전달될까?
-                });
-                //document.querySelector('#new_post_form').append(save_post_button);
-                document.querySelector('#composition_view').append(save_post_button);
-            });
-            */
-
-            // Setting content text with element in posts
-            //let content = post.comment + "<br>" + post.timestamp + "<br>" + post.like;
-            //const one_post_content = document.createElement('div');                        
-            //one_post_content.innerHTML = content;
-            //console.log(one_post_content);
-
-            // 위의 content에서 like빼고 다시 appendchild해서 container한테
+            // Getting logged in username to inserting like button or unlike button
             fetch('/get_login_username')
             .then(response => response.json())
             .then(name => {
+
+                // When logged username is not same with post.username
                 if (name.username !== post.username){
                     console.log(name.username);
                     console.log(post.username);
@@ -654,193 +372,140 @@ function listing_posts(button_name, username){
                     let content = post.comment + "<br>" + post.timestamp;
                     const one_post_content = document.createElement('div');                        
                     one_post_content.innerHTML = content;
-                    //console.log(one_post_content);
+                    
+                    // Appending post content(excepting like) into post_container
                     post_container.appendChild(one_post_content);
 
+                    // Making like button
                     let like = "like";
                     const like_button = document.createElement('button');
                     like_button.innerHTML = like;
 
+                    // When like button is onclick
                     like_button.addEventListener('click', function(){
-                        // unlike 버튼 활성화 필요
 
-                        
-                    
+                        // Updating number of like and adding like_user
                         fetch(`/change_likes/${post.username}/${post.id}`)
                         .then(response => response.json())
                         .then(like => {
                             console.log(like);
-                            //syn = true;
+
+                            // Making like content which has number of like and like or unlike button
                             const like_content = document.createElement('div');
                                                  
+                            // Getting certain post.id post data
                             fetch(`get_post_data/${post.username}/${post.id}`)
                             .then(response => response.json())
                             .then(posts => {
-                                //forEach써야... posts.forEach(function(post))
+
+                                // setting like content's innerhtml value
                                 like_content.innerHTML = posts.like + "";
                                 console.log(posts);
                                 console.log(posts.like);
 
+                                // Removing original post like content for showing updated like content
                                 one_post_like_content.innerHTML = "";
+
+                                // Appending unlike button into like content cause it is inside of like button onclik situation
                                 like_content.appendChild(unlike_button);
                                 console.log(like_content);
-                                one_post_like_content.appendChild(like_content);
-                                //like_button
+
+                                // Appending like content into post like content replacing original post like content
+                                one_post_like_content.appendChild(like_content);                                
                             });
-                        });      
-
-                        //setTimeout(function(){}, 3000);
-                        //let like_content_text = post.like;
-                        //const one_post_like_content = document.createElement('div');                        
-                        //one_post_like_content.innerHTML = like_content_text;
-                        //one_post_like_content.append(like_button);
-
-                        
-                        // 이 아래 내용이 필요한가?? 좀 더 생각 숫자재업로드는 필요함
-                        
-                        // ***********************************************
-                        //const like_content = document.createElement('div');
-                                                 
-                        //fetch(`get_post_data/${post.username}/${post.id}`)
-                        //.then(response => response.json())
-                        //.then(like => {
-                        //    like_content.innerHTML = like.like + "";
-                        //    console.log(like);
-                        //    console.log(like.like);
-
-
-                        //    one_post_like_content.innerHTML = "";
-                        //    like_content.appendChild(like_button);
-                        //    console.log(like_content);
-                        //    one_post_like_content.appendChild(like_content);
-                        //})
-
-                        //*************************************************** */
-                        
-                        //one_post_like_content.style.display = "none";
-
-                                                
-                        // one_post_like_content 의 innerhtml을 ""로 비운 후에 새로운 내용 집어넣으면 됨                    
-                        //post_container.innerHTML = "";  
-
-                        //one_post_like_content.innerHTML = "";*
-
-                        //post_container.remove(one_post_like_content);
-                        
-                        //like_content.appendChild(like_button);**
-                        //one_post_like_content.appendChild(like_content);***
-
-                        //post_container.appendChild(like_content);
-
+                        });
                     })
-                    // Putting like button into container
-                    //like_content.append(like_button);
-                    //post_container.appendChild(like_content);
 
-
+                    // Making post like content
                     let like_content_text = post.like;
                     const one_post_like_content = document.createElement('div');                        
                     one_post_like_content.innerHTML = like_content_text;
                     
+                    // Requesting certain username and post.id post
                     fetch(`get_post_data/${post.username}/${post.id}`)
                     .then(response => response.json())
                     .then(post => {
                         console.log(post);
-                        console.log(post.like_user); // 리스트 형태로 옮
+                        console.log(post.like_user); // it's list form
                         
+                        // Setting post_like user in list form
                         let post_like_user = post.like_user;
                         let found_like_user =false;
                         console.log(post_like_user);
                         
+                        // Checking  whether logged username is same with post like username
                         for (let i = 0; i < post_like_user.length; i++) {
                             if (name.username === post_like_user[i]){
+                                
+                                // When there is same name, append unlike button into post like content
                                 one_post_like_content.append(unlike_button);
+
+                                // Setting found variable to true
                                 found_like_user = true;
+
+                                // Stop the loop
                                 break;
                             }
                         }
 
+                        // When there is no same name
                         if (found_like_user === false) {
+                            
+                            // Appending like button into post like content
                             one_post_like_content.append(like_button);
-                        }
-                        
-                    });
-                    
+                        }                        
+                    });                    
 
-                    // Appending one_post_content into post_container                        
-                    //post_container.appendChild(one_post_content); 이미 등록한듯?-658
-                    post_container.appendChild(one_post_like_content);
+                    // Appending one_post_like_content into post_container                    
+                    post_container.appendChild(one_post_like_content);                   
 
-
-
-                    // 잠시 대기..*****************
-
-                    // Making unlike button -- 기존 like content display=none한 상황에서 like number랑 unlike button을 대신 집어넣기
+                    // Making unlike button
                     let unlike_button_text_value = "Unlike";
                     const unlike_button = document.createElement('button');
                     unlike_button.innerHTML = unlike_button_text_value;
 
+                    // When unlike button is onclick
                     unlike_button.addEventListener('click', function(){
-                        fetch(`/change_likes/${post.username}/${post.id}`,{
-                            method: 'PUT'//,
-                            //body: JSON.stringify({
 
-                            //})                 
+                        // Updating number of like(-1)
+                        fetch(`/change_likes/${post.username}/${post.id}`,{
+                            method: 'PUT'                                             
                         })
                         .then(response => response.json())
                         .then(unlike => {
                             console.log(unlike);
 
-                            const like_content = document.createElement('div');
-                            fetch(`get_post_data/${post.username}/${post.id}`)
+                            // Making like content 
+                            const like_content = document.createElement('div');                            
+                            
+                            // Requesting certain username and post.id post
+                            fetch(`get_post_data/${post.username}/${post.id}`)                            
                             .then(response => response.json())
                             .then(like => {
+
+                                // Inserting recently number of likes 
                                 like_content.innerHTML = like.like + "";
 
+                                // Remove original post like content for showing new like content
                                 one_post_like_content.innerHTML = "";
+
+                                // Appending like button 
                                 like_content.appendChild(like_button);
+
+                                // Appending like content into post like content
                                 one_post_like_content.appendChild(like_content);
-
-
                             })
-                        });
-
-                        // 이 아래 내용이 필요한가?? 좀 더 생각 숫자재업로드는 필요함
-                        //*********************************************** 
-                        //const like_content = document.createElement('div');
-                        //fetch(`get_post_data/${post.username}/${post.id}`)
-                        //.then(response => response.json())
-                        //.then(like => {
-                        //    like_content.innerHTML = like.like + "";
-                        //})
-                        ////one_post_like_content.style.display = "none";                       
-
-                        //one_post_like_content.innerHTML = "";
-                        ////post_container.remove(like_content);
-                        ////post_container.remove(one_post_like_content);
-                        //like_content.appendChild(like_button);
-                        //post_container.appendChild(like_content);
-                        //*********************************************** 
-
-                        //like버튼을 빼고 unlike버튼 삽입 후 container에 like content 삽입
-                        //like_content.append(unlike_button);
-                        //post_container.appendChild(like_content);
+                        });                        
                     })
-
-                    
-                    //const like_content = document.createElement('div');
-                    //fetch(`get_post_data/${post.username}`)
-                    //.then(response => response.json())
-                    //.then(like => {
-                    //    like_content.innerHTML = like.like + "";
-                    //})
-                    
-                    //like_content.append(like_button);
-                    //post_container.appendChild(like_content);
                 }
+
+                // When logged username is same with post.username
                 else {
-                    // innerhtml= ""로 안만들고 해도 덮어지겠지?
+
+                    // Making content incorporating all content except header
                     let content = post.comment + "<br>" + post.timestamp + "<br>" + post.like;
+
+                    // Making one post content and initializing content into this 
                     const one_post_content = document.createElement('div');                        
                     one_post_content.innerHTML = content;
 
@@ -848,29 +513,35 @@ function listing_posts(button_name, username){
                     post_container.appendChild(one_post_content);
                 }
             });
-                        
-            // Appending one_post_content into post_container                        
-            //post_container.appendChild(one_post_content);
 
+            // When button name is all post
             if (button_name === "all_post") {
                 document.querySelector('#uploaded_posts_view').append(post_container);
             }
+
+            // When button name is profile
             else if (button_name === "profile") {
                 document.querySelector('#profile_posts').append(post_container);
             }
+
+            // When button name is following
             else if (button_name === "following") {
                 document.querySelector('#following_posts_view').append(post_container);
-            }               
-            
-        });
-        
+            }            
+        });        
 
+        // When number of posts variables has same value with 10, setting for pagination function
         if (parseInt(number_of_posts, 10) === 10) {
+
+            // Makin next button
             let button_value = "Next";
             const next_button = document.createElement('button');
             next_button.innerHTML = button_value;
+
+            // When next button is onclick
             next_button.addEventListener('click', function(){
-                //document.querySelectorAll(`div.${pagetext}`).remove();
+                
+                // Setting each post view's innerHTML to none in condition of button name
                 if (button_name === "all_post") {                
                     document.querySelector('#uploaded_posts_view').innerHTML = "";
                 }
@@ -879,13 +550,16 @@ function listing_posts(button_name, username){
                 }
                 else if (button_name === "following") {
                     document.querySelector('#following_posts_view').innerHTML = "";
-                }
+                }                
                 
-                //document.querySelector('#uploaded_posts_view').innerHTML = "";
+                // Listing posts the next 10 posts
                 listing_posts(button_name, username);
-                page++;
-                
+
+                // Incrementing page variable for Previous button
+                page++;                
             });
+
+            // Appending next button into each posts view on condition of button name
             if (button_name === "all_post") {                
                 document.querySelector('#uploaded_posts_view').append(next_button);
             }
@@ -895,15 +569,20 @@ function listing_posts(button_name, username){
             else if (button_name === "following") {
                 document.querySelector('#following_posts_view').append(next_button);
             }
-
         }
 
+        // When page variable's value over 0
         if (page > 0) {
+
+            // Making previous button
             let button_value = "Previous";
             const previous_button = document.createElement('button');
             previous_button.innerHTML = button_value;
+
+            // When previous button is onclick
             previous_button.addEventListener('click', function(){
-                //document.querySelectorAll(`div.${pagetext}`).remove();
+                
+                // Setting each posts view's innerHTML to none for showing previous posts
                 if (button_name === "all_post") {                
                     document.querySelector('#uploaded_posts_view').innerHTML = "";
                 }
@@ -913,12 +592,14 @@ function listing_posts(button_name, username){
                 else if (button_name === "following") {
                     document.querySelector('#following_posts_view').innerHTML = "";
                 }
-                //document.querySelector('#uploaded_posts_view').innerHTML = "";
+
+                // Decrementing page value and couter for showing previous 10 posts
                 page--;
                 counter = counter - 20;
-                listing_posts(button_name, username);
-                
+                listing_posts(button_name, username);                
             });
+
+            // Appending previous button into each posts view on condition of button name
             if (button_name === "all_post") {                
                 document.querySelector('#uploaded_posts_view').append(previous_button);
             }
@@ -927,23 +608,20 @@ function listing_posts(button_name, username){
             }
             else if (button_name === "following") {
                 document.querySelector('#following_posts_view').append(previous_button);
-            }
-            //document.querySelector('#uploaded_posts_view').append(previous_button);
+            }            
         }
-    });
-
-    
+    });    
     
     return false;
 }
 
 
 function upload_db() {
-    // Setting post data into variables
-    //const username = pass;
+
+    // Setting post comment data value into variable    
     const comment = document.querySelector('#comment').value;
-    //const like = 0; setting default 0 
-    // upload variable into db using fetch
+    
+    // Upload comment variable into db using fetch
     fetch('/upload', {
         method: 'POST',
         body: JSON.stringify({
@@ -955,14 +633,18 @@ function upload_db() {
       console.log(result);
     });
 
-    location.reload(); // 안해도 될듯? 체크하기
-    //localStorage.clear(); 
+    // Reload the page for showing current page
+    location.reload(); // if you remove the code, you should set none to post view innethtml in proper condition
+    
+    // Listing all posts
     open_post();
+
     return false;    
 }
 
 function update_db(post_id, new_comment) {
-    //const new_comment = document.querySelector('#comment').value;
+
+    // Updating new comment bying editting comment
     fetch(`/update/${post_id}`,{
         method: 'PUT',
         body: JSON.stringify({
@@ -974,17 +656,15 @@ function update_db(post_id, new_comment) {
         console.log(result);
     });    
 
+    // Reload for current page
     location.reload();
-    //document.querySelector('#uploaded_posts_view').innerHTML = '';
+
+    // Listing all posts
     open_post();
+
     return false;  
 
-}                 
-// 수정을 했을때 수정한 값을 바로 innerhtml값으로 넣어주고 변경한 값은 fetch로 전송하면 reload없이 바로 될듯, 다음에 posts나열될때는 저장된 db에서 데이터 들고오니까.. 
-// unlike도 해야함
-// 일단, 코드정리한 후 다름 사람이 한 거 코드구경하러가자
-//  cs50w project 아쉬운점 specification을 좀 더 구체적으로 해줬더라면..
+}
 
-                    
-
-
+//  cs50w project 아쉬운점 specification을 좀 더 구체적으로 해줬더라면.. 
+// 그래도 like button 할 때 reload 안하고 page에 바로 결과보여주는거 성공해서 다행 그 아이디어를 upload_db나 update_db에 적용하면 될듯
